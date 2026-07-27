@@ -6,6 +6,8 @@ preprint-latex
 
 .Rproj.user/
 
+.RData
+
 ~$search-notes.docx
 
 .Rprofile
