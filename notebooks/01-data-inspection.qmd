@@ -1,0 +1,175 @@
+---
+title: "01 Data Inspection"
+format: html
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+# Purpose
+
+This notebook performs an initial inspection of the raw Bahrami2020 four-arm restless bandit dataset.
+
+# Dataset
+
+- Dataset: Bahrami2020 Four-Arm Restless Bandit
+- Source: OSF (https://osf.io/f3t2a/)
+- File: `data/raw/DataAllSubjectsRewards.csv`
+
+# Setup
+
+```{r}
+
+library(here)
+
+source(here("R", "preprocessing.R"))
+```
+
+# Load Dataset
+
+```{r}
+raw_data <- load_raw_data()
+```
+
+# Dataset Overview
+
+## Dimensions
+
+```{r}
+get_dimensions(raw_data)
+```
+
+## Structure
+
+```{r}
+get_structure(raw_data)
+```
+
+## Variable Names
+
+```{r}
+get_variable_names(raw_data)
+```
+
+## First Observations
+
+```{r}
+get_head(raw_data)
+```
+
+## Last Observations
+
+```{r}
+get_tail(raw_data)
+```
+
+# Variable Summary
+
+```{r}
+get_summary(raw_data)
+```
+
+# Missing Data
+
+## Missing Values by Variable
+
+```{r}
+missing_by_variable(raw_data)
+```
+
+## Total Missing Values
+
+```{r}
+total_missing(raw_data)
+```
+
+# Participants
+
+## Number of Participants
+
+```{r}
+participant_count(raw_data)
+```
+
+## Trials per Participant
+
+```{r}
+participant_trial_summary(raw_data)
+```
+
+# Variables
+
+## Variable Types
+
+```{r}
+variable_types(raw_data)
+```
+
+## Unique Values
+
+```{r}
+unique_value_counts(raw_data)
+```
+
+## Payoff Groups
+
+```{r}
+payoff_groups(raw_data)
+```
+
+## Choice Values
+
+```{r}
+choice_values(raw_data)
+```
+
+# Descriptive Statistics
+
+```{r}
+behavioural_summary(raw_data)
+```
+
+# Data Integrity
+
+## Duplicate Rows
+
+```{r}
+duplicate_rows(raw_data)
+```
+
+## Missing Participant IDs
+
+```{r}
+missing_participant_ids(raw_data)
+```
+
+## Participant Trial Distribution
+
+```{r}
+participant_trial_distribution(raw_data)
+```
+
+## Reward Range
+
+```{r}
+reward_range(raw_data)
+```
+
+## Reaction Time Range
+
+```{r}
+reaction_time_range(raw_data)
+```
+
+# Inspection Summary
+
+```{r}
+inspection_summary(raw_data)
+```
+
+# Computational Environment
+
+```{r}
+sessionInfo()
+```
