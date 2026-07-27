@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+title: ""
+
+authors:
+  - family-names: "Jaripour"
+    given-names: "Erfan"
+
+version: "1.0.0"
+
+repository-code: "https://github.com/erfanjaripour/reinforcement-learning-trajectories"
+
+license: "MIT"
+
+date-released: "2026-07-27"
