@@ -1,0 +1,289 @@
+---
+title: "Exploratory Analysis"
+format: html
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+# Purpose
+
+This notebook performs descriptive exploratory analysis of the analysis-ready Bahrami2020 four-arm restless bandit dataset. The objective is to characterize behavioural patterns, evaluate the hierarchical structure of the data, assess data quality, examine variables relevant to the planned mixed-effects models, and determine readiness for statistical modelling. No confirmatory statistical inference is conducted.
+
+# Dataset
+
+- Dataset: Bahrami2020 Four-Arm Restless Bandit
+- Source: OSF (https://osf.io/f3t2a/)
+
+# Setup
+
+```{r}
+library(here)
+
+source(here("R", "preprocessing.R"))
+source(here("R", "visualization.R"))
+```
+
+# Load Processed Dataset
+
+```{r}
+raw_data <- load_raw_data()
+
+nonresponse_trial_summary(raw_data)
+
+processed_data <- preprocess_data(raw_data)
+
+save_processed_data(processed_data)
+
+processed_data <- load_processed_data()
+```
+
+# Dataset Verification
+
+## Verification Summary
+
+```{r}
+verify_dataset(processed_data)
+```
+
+# Participant Characteristics
+
+## Number of Participants
+
+```{r}
+participant_count(processed_data)
+```
+
+## Trials per Participant
+
+```{r}
+participant_trial_summary(processed_data)
+```
+
+## Participant Trial Distribution
+
+```{r}
+participant_trial_distribution(processed_data)
+```
+
+## Participant Summary
+
+```{r}
+participant_summary(processed_data)
+```
+
+## Payoff Group Summary
+
+```{r}
+payoff_group_summary(processed_data)
+```
+
+## Payoff Group Distribution
+
+```{r}
+plot_payoff_groups(processed_data)
+```
+
+## Trial Count Distribution
+
+```{r}
+plot_trial_counts(processed_data)
+```
+
+# Behavioural Variables
+
+## Overall Behavioural Summary
+
+```{r}
+behavioural_summary(processed_data)
+```
+
+## Reward Summary
+
+```{r}
+variable_summary(processed_data, reward)
+```
+
+## Reaction Time Summary
+
+```{r}
+variable_summary(processed_data, rt)
+```
+
+## Reward Distribution
+
+```{r}
+plot_reward_distribution(processed_data)
+```
+
+## Reaction Time Distribution
+
+```{r}
+plot_rt_distribution(processed_data)
+```
+
+## Choice Distribution
+
+```{r}
+plot_choice_distribution(processed_data)
+```
+
+## Reward Boxplot
+
+```{r}
+plot_reward_boxplot(processed_data)
+```
+
+## Reaction Time Boxplot
+
+```{r}
+plot_rt_boxplot(processed_data)
+```
+
+# Learning Behaviour
+
+## Reward Learning Curve
+
+```{r}
+plot_reward_learning_curve(processed_data)
+```
+
+## Reaction Time Learning Curve
+
+```{r}
+plot_rt_learning_curve(processed_data)
+```
+
+## Reward Learning by Payoff Group
+
+```{r}
+plot_reward_by_payoff_group(processed_data)
+```
+
+# Individual Learning Trajectories
+
+## Reward Trajectories
+
+```{r}
+plot_individual_reward_trajectories(processed_data)
+```
+
+## Reaction Time Trajectories
+
+```{r}
+plot_individual_rt_trajectories(processed_data)
+```
+
+# Between-Participant Variability
+
+## Mean Reward Distribution
+
+```{r}
+plot_participant_mean_reward(processed_data)
+```
+
+## Mean Reaction Time Distribution
+
+```{r}
+plot_participant_mean_rt(processed_data)
+```
+
+# Relationships Among Variables
+
+## Reward Across Trials
+
+```{r}
+plot_reward_vs_trial(processed_data)
+```
+
+## Reaction Time Across Trials
+
+```{r}
+plot_rt_vs_trial(processed_data)
+```
+
+## Reward versus Reaction Time
+
+```{r}
+plot_reward_vs_rt(processed_data)
+```
+
+## Correlation Matrix
+
+```{r}
+plot_correlation_matrix(
+        processed_data,
+        variables = c(
+                "reward",
+                "rt",
+                "trial"
+        )
+)
+```
+
+# Missing Data
+
+## Missing Values by Variable
+
+```{r}
+missing_by_variable(processed_data)
+```
+
+## Missing Values by Variable (%)
+
+```{r}
+missing_by_variable_percent(processed_data)
+```
+
+## Missing Values by Participant
+
+```{r}
+missing_by_participant(processed_data)
+```
+
+## Missing Data Visualisation
+
+```{r}
+plot_missing_values(processed_data)
+```
+
+# Outlier Assessment
+
+## Reaction Time Outliers
+
+```{r}
+reaction_time_outliers(processed_data)
+```
+
+## Reward Outliers
+
+```{r}
+reward_outliers(processed_data)
+```
+
+## Reaction Time Outlier Visualisation
+
+```{r}
+plot_rt_outliers(processed_data)
+```
+
+# Correlation Matrix
+
+## Continuous Variables
+
+```{r}
+continuous_correlations(processed_data)
+```
+
+# Model Readiness
+
+```{r}
+model_readiness(processed_data)
+```
+
+# Computational Environment
+
+```{r}
+sessionInfo()
+```
