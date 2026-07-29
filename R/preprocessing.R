@@ -1,7 +1,7 @@
 # Data Loading
 
 load_raw_data <- function(
-        path = here::here("data", "raw", "DataAllSubjectsRewards.csv")
+                path = here::here("data", "raw", "DataAllSubjectsRewards.csv")
 ) {
         
         stopifnot(file.exists(path))
@@ -9,6 +9,95 @@ load_raw_data <- function(
         readr::read_csv(
                 path,
                 show_col_types = FALSE
+        )
+}
+
+load_processed_data <- function(
+                path = here::here("data", "processed", "processed_data.csv")
+) {
+        
+        stopifnot(file.exists(path))
+        
+        readr::read_csv(
+                path,
+                show_col_types = FALSE
+        )
+}
+
+save_processed_data <- function(
+                data,
+                path = here::here("data", "processed", "processed_data.csv")
+) {
+        
+        readr::write_csv(data, path)
+        
+        invisible(data)
+}
+
+# Preprocessing
+
+clean_invalid_rt <- function(data) {
+        
+        data |>
+                dplyr::mutate(
+                        rt = dplyr::if_else(
+                                rt <= 0,
+                                NA_real_,
+                                rt
+                        )
+                )
+}
+
+remove_nonresponse_trials <- function(data) {
+        
+        data |>
+                dplyr::filter(
+                        !is.na(choice),
+                        !is.na(reward),
+                )
+}
+
+nonresponse_trial_summary <- function(data) {
+        
+        tibble::tibble(
+                total_trials = nrow(data),
+                removed_trials = sum(
+                        is.na(data$choice) |
+                                is.na(data$reward)
+                ),
+                retained_trials = sum(
+                        !is.na(data$choice) &
+                                !is.na(data$reward)
+                )
+        )
+}
+
+create_trial_index <- function(data) {
+        
+        data |>
+                dplyr::group_by(id) |>
+                dplyr::mutate(
+                        trial = dplyr::row_number()
+                ) |>
+                dplyr::ungroup()
+}
+
+preprocess_data <- function(data = load_raw_data()) {
+        
+        data |>
+                create_trial_index() |>
+                remove_nonresponse_trials() |>
+                clean_invalid_rt()
+}
+
+inspect_invalid_values <- function(data) {
+        
+        tibble::tibble(
+                negative_rt = sum(data$rt < 0, na.rm = TRUE),
+                zero_rt = sum(data$rt == 0, na.rm = TRUE),
+                missing_choice = sum(is.na(data$choice)),
+                missing_reward = sum(is.na(data$reward)),
+                missing_rt = sum(is.na(data$rt))
         )
 }
 
@@ -149,5 +238,163 @@ inspection_summary <- function(data) {
                 reward_max = reward_rng[2],
                 rt_min = rt_rng[1],
                 rt_max = rt_rng[2]
+        )
+}
+
+# Processed Dataset Verification
+
+verify_dataset <- function(data) {
+        
+        required_variables <- c(
+                "id",
+                "trial",
+                "choice",
+                "reward",
+                "rt",
+                "payoff_group"
+        )
+        
+        tibble::tibble(
+                observations = nrow(data),
+                variables = ncol(data),
+                participants = dplyr::n_distinct(data$id),
+                duplicate_rows = duplicate_rows(data),
+                missing_participant_ids = missing_participant_ids(data),
+                required_variables_present =
+                        all(required_variables %in% names(data)),
+                valid_choice =
+                        all(stats::na.omit(data$choice) %in% 1:4),
+                valid_payoff_group =
+                        all(data$payoff_group %in% c(2, 3, 4)),
+                trial_range =
+                        paste(range(data$trial), collapse = "–"),
+                
+                consecutive_trials =
+                        data |>
+                        dplyr::group_by(id) |>
+                        dplyr::summarise(
+                                valid = all(trial == seq_len(dplyr::n())),
+                                .groups = "drop"
+                        ) |>
+                        dplyr::pull(valid) |>
+                        all()
+        )
+}
+
+# Participant Summary
+
+participant_summary <- function(data) {
+        
+        data |>
+                dplyr::group_by(id) |>
+                dplyr::summarise(
+                        n_trials = dplyr::n(),
+                        mean_reward = mean(reward, na.rm = TRUE),
+                        mean_rt = mean(rt, na.rm = TRUE),
+                        .groups = "drop"
+                )
+}
+
+payoff_group_summary <- function(data) {
+        
+        data |>
+                dplyr::count(payoff_group)
+}
+
+# Behavioural Variables
+
+variable_summary <- function(data, variable) {
+        
+        x <- dplyr::pull(data, {{ variable }})
+        
+        tibble::tibble(
+                min = min(x, na.rm = TRUE),
+                q1 = stats::quantile(x, 0.25, na.rm = TRUE),
+                median = stats::median(x, na.rm = TRUE),
+                mean = mean(x, na.rm = TRUE),
+                q3 = stats::quantile(x, 0.75, na.rm = TRUE),
+                max = max(x, na.rm = TRUE),
+                sd = stats::sd(x, na.rm = TRUE)
+        )
+}
+
+# Missing Data
+
+missing_by_participant <- function(data) {
+        
+        data |>
+                dplyr::group_by(id) |>
+                dplyr::summarise(
+                        missing_values =
+                                sum(is.na(as.matrix(dplyr::pick(dplyr::everything())))),
+                        .groups = "drop"
+                )
+}
+
+missing_by_variable_percent <- function(data) {
+        
+        tibble::tibble(
+                variable = names(data),
+                missing = colSums(is.na(data)),
+                percent = 100 * colSums(is.na(data)) / nrow(data)
+        )
+}
+
+# Outliers
+
+reaction_time_outliers <- function(data) {
+        
+        q1 <- stats::quantile(data$rt, 0.25, na.rm = TRUE)
+        q3 <- stats::quantile(data$rt, 0.75, na.rm = TRUE)
+        
+        iqr <- q3 - q1
+        
+        data |>
+                dplyr::filter(
+                        rt < (q1 - 1.5 * iqr) |
+                                rt > (q3 + 1.5 * iqr)
+                )
+}
+
+reward_outliers <- function(data) {
+        
+        q1 <- stats::quantile(data$reward, 0.25, na.rm = TRUE)
+        q3 <- stats::quantile(data$reward, 0.75, na.rm = TRUE)
+        
+        iqr <- q3 - q1
+        
+        data |>
+                dplyr::filter(
+                        reward < (q1 - 1.5 * iqr) |
+                                reward > (q3 + 1.5 * iqr)
+                )
+}
+
+# Correlations
+
+continuous_correlations <- function(data) {
+        
+        data |>
+                dplyr::select(
+                        reward,
+                        rt,
+                        dplyr::starts_with("reward_c")
+                ) |>
+                stats::cor(
+                        use = "pairwise.complete.obs"
+                )
+}
+
+# Model Readiness
+
+model_readiness <- function(data) {
+        
+        tibble::tibble(
+                observations = nrow(data),
+                participants = dplyr::n_distinct(data$id),
+                missing = total_missing(data),
+                duplicate_rows = duplicate_rows(data),
+                min_trials = min(dplyr::count(data, id)$n),
+                max_trials = max(dplyr::count(data, id)$n)
         )
 }
