@@ -1,5 +1,5 @@
 ---
-title: "01 Data Inspection"
+title: "Data Inspection"
 format: html
 execute:
   echo: true
@@ -9,18 +9,16 @@ execute:
 
 # Purpose
 
-This notebook performs an initial inspection of the raw Bahrami2020 four-arm restless bandit dataset.
+This notebook performs an initial inspection of the raw Bahrami2020 four-arm restless bandit dataset. No preprocessing, filtering, or data modification is performed.
 
 # Dataset
 
 - Dataset: Bahrami2020 Four-Arm Restless Bandit
 - Source: OSF (https://osf.io/f3t2a/)
-- File: `data/raw/DataAllSubjectsRewards.csv`
 
 # Setup
 
 ```{r}
-
 library(here)
 
 source(here("R", "preprocessing.R"))
