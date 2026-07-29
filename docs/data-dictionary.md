@@ -78,6 +78,10 @@ The dataset contains one row per trial per participant.
 
 \* Raw data are stored unchanged in data/raw/.
 
+\* Trials without recorded responses (missing choice and reward) are excluded during preprocessing because behavioural outcomes cannot be calculated.
+
+\* Trials with missing reaction time (rt) values are retained in the processed dataset because they remain valid for choice-based analyses. These observations are excluded only from reaction-time-specific analyses.
+
 
 
 \## Provenance
@@ -89,6 +93,4 @@ The dataset contains one row per trial per participant.
 \* \*\*Raw data location:\*\* data/raw/DataAllSubjectsRewards.csv
 
 \* \*\*Raw data policy:\*\* unchanged, immutable, and version preserved
-
-
 
