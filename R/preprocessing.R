@@ -82,12 +82,52 @@ create_trial_index <- function(data) {
                 dplyr::ungroup()
 }
 
+create_optimal_choice <- function(data) {
+        
+        data |>
+                dplyr::rowwise() |>
+                dplyr::mutate(
+                        
+                        max_reward = max(
+                                dplyr::c_across(reward_c1:reward_c4),
+                                na.rm = TRUE
+                        ),
+                        
+                        optimal_choice = dplyr::case_when(
+                                choice == 1 ~ reward_c1 == max_reward,
+                                choice == 2 ~ reward_c2 == max_reward,
+                                choice == 3 ~ reward_c3 == max_reward,
+                                choice == 4 ~ reward_c4 == max_reward
+                        )
+                ) |>
+                dplyr::ungroup() |>
+                dplyr::select(-max_reward)
+}
+
+create_choice_switch <- function(data) {
+        
+        data |>
+                dplyr::group_by(id) |>
+                dplyr::mutate(
+                        choice_switch =
+                                dplyr::if_else(
+                                        dplyr::row_number() == 1,
+                                        NA,
+                                        choice != dplyr::lag(choice)
+                                )
+                ) |>
+                dplyr::ungroup()
+}
+
 preprocess_data <- function(data = load_raw_data()) {
         
         data |>
-                create_trial_index() |>
+                clean_invalid_rt() |>
                 remove_nonresponse_trials() |>
-                clean_invalid_rt()
+                create_trial_index() |>
+                create_optimal_choice() |>
+                create_choice_switch()
+                
 }
 
 inspect_invalid_values <- function(data) {
@@ -251,7 +291,9 @@ verify_dataset <- function(data) {
                 "choice",
                 "reward",
                 "rt",
-                "payoff_group"
+                "payoff_group",
+                "optimal_choice",
+                "choice_switch"
         )
         
         tibble::tibble(
@@ -260,12 +302,32 @@ verify_dataset <- function(data) {
                 participants = dplyr::n_distinct(data$id),
                 duplicate_rows = duplicate_rows(data),
                 missing_participant_ids = missing_participant_ids(data),
+                
                 required_variables_present =
                         all(required_variables %in% names(data)),
+                
                 valid_choice =
                         all(stats::na.omit(data$choice) %in% 1:4),
+                
                 valid_payoff_group =
                         all(data$payoff_group %in% c(2, 3, 4)),
+                
+                valid_optimal_choice =
+                        all(stats::na.omit(data$optimal_choice) %in% c(TRUE, FALSE)),
+                
+                valid_choice_switch =
+                        all(stats::na.omit(data$choice_switch) %in% c(TRUE, FALSE)),
+                
+                first_trial_switch_missing =
+                        data |>
+                        dplyr::group_by(id) |>
+                        dplyr::summarise(
+                                valid = is.na(choice_switch[trial == 1]),
+                                .groups = "drop"
+                        ) |>
+                        dplyr::pull(valid) |>
+                        all(),
+                
                 trial_range =
                         paste(range(data$trial), collapse = "–"),
                 
@@ -280,7 +342,6 @@ verify_dataset <- function(data) {
                         all()
         )
 }
-
 # Participant Summary
 
 participant_summary <- function(data) {
