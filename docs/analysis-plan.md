@@ -68,11 +68,17 @@ The primary analysis fits a logistic mixed-effects model to examine changes in t
 
 
 
+\### Primary Outcome
+
+
+
+An optimal choice is defined as selecting an option whose reward value equals the maximum reward value available on that trial. When two options share the maximum reward value, selecting either option is classified as an optimal choice.
+
+
+
 \## Secondary Analyses
 
 
 
 Secondary analyses examine obtained reward, reaction time, and exploratory behavioural measures using appropriate mixed-effects models. Bayesian multilevel analyses replicate the primary analysis to evaluate the robustness of the findings.
-
-
 
