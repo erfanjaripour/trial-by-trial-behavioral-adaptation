@@ -40,27 +40,33 @@ The dataset contains one row per trial per participant.
 
 
 
-| Variable       |             Type | Description                                                      |
+| Variable       |             Type | Description                                                                               |
 
-| -------------- | ---------------: | ---------------------------------------------------------------- |
+| -------------- | ---------------: | ----------------------------------------------------------------------------------------- |
 
-| id           |          integer | Participant identifier.                                          |
+| id             |          integer | Participant identifier.                                                                   |
 
-| choice       |          integer | Option selected on the trial. Values: 1–4.                       |
+| choice         |          integer | Option selected on the trial. Values: 1–4.                                                |
 
-| reward       |          numeric | Reward obtained on the trial following the participant’s choice. |
+| reward         |          numeric | Reward obtained on the trial following the participant’s choice.                          |
 
-| rt           |          numeric | Choice reaction time in milliseconds.                            |
+| rt             |          numeric | Choice reaction time in milliseconds.                                                     |
 
-| payoff\_group | integer / factor | Reward schedule group assigned to the participant.               |
+| payoff\_group   | integer / factor | Reward schedule group assigned to the participant.                                        |
 
-| reward\_c1    |          numeric | Reward value for option 1 under the predefined reward schedule.  |
+| reward\_c1      |          numeric | Reward value for option 1 under the predefined reward schedule.                           |
 
-| reward\_c2    |          numeric | Reward value for option 2 under the predefined reward schedule.  |
+| reward\_c2      |          numeric | Reward value for option 2 under the predefined reward schedule.                           |
 
-| reward\_c3    |          numeric | Reward value for option 3 under the predefined reward schedule.  |
+| reward\_c3      |          numeric | Reward value for option 3 under the predefined reward schedule.                           |
 
-| reward\_c4    |          numeric | Reward value for option 4 under the predefined reward schedule.  |
+| reward\_c4      |          numeric | Reward value for option 4 under the predefined reward schedule.                           |
+
+| trial          |          integer | Sequential trial number within each participant in the analysis-ready dataset.                                                         |
+
+| optimal\_choice |          integer | Whether the participant selected an optimal option on the trial. Values: 0 = No, 1 = Yes.                                       |
+
+| choice\_switching  |          integer | Whether the participant switched from the previous choice. Values: NA = first trial, 0 = No, 1 = Yes. |
 
 
 
