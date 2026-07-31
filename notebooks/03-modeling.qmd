@@ -1,0 +1,535 @@
+---
+title: "Modeling"
+format: html
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+# Setup
+
+```{r}
+library(tidyverse)
+library(lme4)
+library(lmerTest)
+library(broom.mixed)
+library(performance)
+library(DHARMa)
+
+source("../R/preprocessing.R")
+source("../R/models.R")
+source("../R/visualization.R")
+
+processed_data <- readr::read_csv(
+        "../data/processed/processed_data.csv"
+)
+```
+
+# Primary Outcome: Optimal Choice
+
+## Model Fitting
+
+```{r}
+optimal_null <-
+        fit_optimal_choice_null(
+                processed_data
+        )
+
+optimal_fixed <-
+        fit_optimal_choice_fixed(
+                processed_data
+        )
+
+optimal_random_slope <-
+        fit_optimal_choice_random_slope(
+                processed_data
+        )
+
+optimal_interaction <-
+        fit_optimal_choice_interaction(
+                processed_data
+        )
+```
+
+## Model Validation
+
+```{r}
+model_summary(optimal_null)
+
+model_summary(optimal_fixed)
+
+model_summary(optimal_random_slope)
+
+model_summary(optimal_interaction)
+
+
+check_convergence(
+        optimal_interaction
+)
+
+check_singularity(
+        optimal_interaction
+)
+```
+
+## Model Comparison
+
+```{r}
+optimal_comparison <-
+        compare_models(
+                null = optimal_null,
+                fixed = optimal_fixed,
+                random_slope = optimal_random_slope,
+                interaction = optimal_interaction
+        )
+
+optimal_comparison
+```
+
+```{r}
+compare_nested_models(
+        optimal_null,
+        optimal_fixed,
+        test = "Chisq"
+)
+
+compare_nested_models(
+        optimal_fixed,
+        optimal_random_slope,
+        test = "Chisq"
+)
+
+compare_nested_models(
+        optimal_random_slope,
+        optimal_interaction,
+        test = "Chisq"
+)
+```
+
+## Diagnostic Evaluation
+
+```{r}
+optimal_dharma <-
+        DHARMa::simulateResiduals(
+                fittedModel = optimal_interaction
+        )
+
+plot(optimal_dharma)
+
+DHARMa::testDispersion(
+        optimal_dharma
+)
+```
+
+## Visualization
+
+```{r}
+plot_predictions_by_group(
+        optimal_interaction,
+        terms = c("trial_c", "payoff_group"),
+        y_label = "Predicted probability of optimal choice"
+)
+
+
+plot_random_intercepts(
+        optimal_interaction
+)
+
+
+plot_random_slopes(
+        optimal_interaction
+)
+```
+
+# Secondary Outcome: Reward
+
+## Model Fitting
+
+```{r}
+reward_null <-
+        fit_reward_null(
+                processed_data
+        )
+
+reward_fixed <-
+        fit_reward_fixed(
+                processed_data
+        )
+
+reward_random_slope <-
+        fit_reward_random_slope(
+                processed_data
+        )
+
+reward_interaction <-
+        fit_reward_interaction(
+                processed_data
+        )
+```
+
+## Model Validation
+
+```{r}
+model_summary(reward_null)
+
+model_summary(reward_fixed)
+
+model_summary(reward_random_slope)
+
+model_summary(reward_interaction)
+
+
+check_convergence(
+        reward_interaction
+)
+
+check_singularity(
+        reward_interaction
+)
+```
+
+## Model Comparison
+
+```{r}
+reward_comparison <-
+        compare_models(
+                null = reward_null,
+                fixed = reward_fixed,
+                random_slope = reward_random_slope,
+                interaction = reward_interaction
+        )
+
+reward_comparison
+```
+
+```{r}
+compare_nested_models(
+        reward_null,
+        reward_fixed
+)
+
+compare_nested_models(
+        reward_fixed,
+        reward_random_slope
+)
+
+compare_nested_models(
+        reward_random_slope,
+        reward_interaction
+)
+```
+
+## Diagnostics
+
+```{r}
+plot_lmm_residuals(
+        reward_interaction
+)
+
+
+plot_lmm_qq(
+        reward_interaction
+)
+```
+
+## Visualization
+
+```{r}
+plot_predictions_by_group(
+        reward_interaction,
+        terms = c("trial_c", "payoff_group"),
+        y_label = "Predicted reward"
+)
+```
+
+# Secondary Outcome: Reaction Time
+
+## Model Fitting
+
+```{r}
+log_rt_null <-
+        fit_log_rt_null(
+                processed_data
+        )
+
+log_rt_fixed <-
+        fit_log_rt_fixed(
+                processed_data
+        )
+
+log_rt_random_slope <-
+        fit_log_rt_random_slope(
+                processed_data
+        )
+
+log_rt_interaction <-
+        fit_log_rt_interaction(
+                processed_data
+        )
+```
+
+## Model Validation
+
+```{r}
+model_summary(log_rt_null)
+
+model_summary(log_rt_fixed)
+
+model_summary(log_rt_random_slope)
+
+model_summary(log_rt_interaction)
+
+
+check_convergence(
+        log_rt_interaction
+)
+
+check_singularity(
+        log_rt_interaction
+)
+```
+
+## Model Comparison
+
+```{r}
+log_rt_comparison <-
+        compare_models(
+                null = log_rt_null,
+                fixed = log_rt_fixed,
+                random_slope = log_rt_random_slope,
+                interaction = log_rt_interaction
+        )
+
+log_rt_comparison
+```
+
+```{r}
+compare_nested_models(
+        log_rt_null,
+        log_rt_fixed
+)
+
+compare_nested_models(
+        log_rt_fixed,
+        log_rt_random_slope
+)
+
+compare_nested_models(
+        log_rt_random_slope,
+        log_rt_interaction
+)
+```
+
+## Diagnostics
+
+```{r}
+plot_lmm_residuals(
+        log_rt_interaction
+)
+
+
+plot_lmm_qq(
+        log_rt_interaction
+)
+```
+
+## Visualization
+
+```{r}
+plot_predictions_by_group(
+        log_rt_interaction,
+        terms = c("trial_c", "payoff_group"),
+        y_label = "Predicted log reaction time"
+)
+```
+
+# Secondary Outcome: Choice Switching
+
+## Model Fitting
+
+```{r}
+switch_null <-
+        fit_choice_switch_null(
+                processed_data
+        )
+
+switch_fixed <-
+        fit_choice_switch_fixed(
+                processed_data
+        )
+
+switch_random_slope <-
+        fit_choice_switch_random_slope(
+                processed_data
+        )
+
+switch_interaction <-
+        fit_choice_switch_interaction(
+                processed_data
+        )
+```
+
+## Model Validation
+
+```{r}
+model_summary(switch_null)
+
+model_summary(switch_fixed)
+
+model_summary(switch_random_slope)
+
+model_summary(switch_interaction)
+
+
+check_convergence(
+        switch_interaction
+)
+
+check_singularity(
+        switch_interaction
+)
+```
+
+## Model Comparison
+
+```{r}
+switch_comparison <-
+        compare_models(
+                null = switch_null,
+                fixed = switch_fixed,
+                random_slope = switch_random_slope,
+                interaction = switch_interaction
+        )
+
+switch_comparison
+```
+
+```{r}
+compare_nested_models(
+        switch_null,
+        switch_fixed,
+        test = "Chisq"
+)
+
+compare_nested_models(
+        switch_fixed,
+        switch_random_slope,
+        test = "Chisq"
+)
+
+compare_nested_models(
+        switch_random_slope,
+        switch_interaction,
+        test = "Chisq"
+)
+```
+
+## Diagnostics
+
+```{r}
+switch_dharma <-
+        DHARMa::simulateResiduals(
+                fittedModel = switch_interaction
+        )
+
+plot(switch_dharma)
+
+DHARMa::testDispersion(
+        switch_dharma
+)
+```
+
+## Visualization
+
+```{r}
+plot_predictions_by_group(
+        switch_interaction,
+        terms = c("trial_c", "payoff_group"),
+        y_label = "Predicted probability of switching"
+)
+```
+
+# Robustness Analyses
+
+## Quadratic Learning Model
+
+```{r}
+optimal_quadratic <-
+        fit_optimal_choice_quadratic(
+                processed_data
+        )
+
+
+quadratic_comparison <-
+        compare_models(
+                linear = optimal_interaction,
+                quadratic = optimal_quadratic
+        )
+
+quadratic_comparison
+```
+
+## Random-Effects Sensitivity
+
+```{r}
+optimal_correlated_slope <-
+        fit_optimal_choice_random_slope(
+                processed_data
+        )
+
+
+random_effect_comparison <-
+        compare_models(
+                uncorrelated = optimal_random_slope,
+                correlated = optimal_correlated_slope
+        )
+
+random_effect_comparison
+```
+
+# Fixed Effects Reporting
+
+```{r}
+optimal_effects <-
+        broom.mixed::tidy(
+                optimal_interaction,
+                effects = "fixed",
+                conf.int = TRUE
+        )
+
+
+reward_effects <-
+        broom.mixed::tidy(
+                reward_interaction,
+                effects = "fixed",
+                conf.int = TRUE
+        )
+
+
+log_rt_effects <-
+        broom.mixed::tidy(
+                log_rt_interaction,
+                effects = "fixed",
+                conf.int = TRUE
+        )
+
+
+switch_effects <-
+        broom.mixed::tidy(
+                switch_interaction,
+                effects = "fixed",
+                conf.int = TRUE
+        )
+
+
+optimal_effects
+reward_effects
+log_rt_effects
+switch_effects
+```
+# Computational Environment
+
+```{r}
+sessionInfo()
+```
