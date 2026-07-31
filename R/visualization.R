@@ -486,3 +486,300 @@ plot_rt_outliers <- function(data) {
                 ) +
                 ggplot2::theme_minimal()
 }
+
+# Model Fixed Effects
+
+plot_fixed_effects <- function(model) {
+        
+        broom.mixed::tidy(
+                model,
+                effects = "fixed",
+                conf.int = TRUE
+        ) |>
+                ggplot2::ggplot(
+                        ggplot2::aes(
+                                x = term,
+                                y = estimate,
+                                ymin = conf.low,
+                                ymax = conf.high
+                        )
+                ) +
+                ggplot2::geom_pointrange() +
+                ggplot2::coord_flip() +
+                ggplot2::labs(
+                        x = NULL,
+                        y = "Fixed Effect Estimate"
+                ) +
+                ggplot2::theme_minimal()
+}
+
+
+plot_odds_ratios <- function(model) {
+        
+        broom.mixed::tidy(
+                model,
+                effects = "fixed",
+                conf.int = TRUE,
+                exponentiate = TRUE
+        ) |>
+                ggplot2::ggplot(
+                        ggplot2::aes(
+                                x = term,
+                                y = estimate,
+                                ymin = conf.low,
+                                ymax = conf.high
+                        )
+                ) +
+                ggplot2::geom_hline(
+                        yintercept = 1
+                ) +
+                ggplot2::geom_pointrange() +
+                ggplot2::coord_flip() +
+                ggplot2::labs(
+                        x = NULL,
+                        y = "Odds Ratio"
+                ) +
+                ggplot2::theme_minimal()
+}
+
+
+# Marginal Predictions
+
+plot_marginal_effects <- function(model,
+                                  terms,
+                                  y_label = "Predicted value") {
+        
+        predictions <-
+                ggeffects::ggpredict(
+                        model,
+                        terms = terms
+                )
+        
+        ggplot2::ggplot(
+                predictions,
+                ggplot2::aes(
+                        x = x,
+                        y = predicted,
+                        ymin = conf.low,
+                        ymax = conf.high
+                )
+        ) +
+                ggplot2::geom_ribbon(
+                        alpha = 0.2
+                ) +
+                ggplot2::geom_line() +
+                ggplot2::labs(
+                        x = terms[1],
+                        y = y_label
+                ) +
+                ggplot2::theme_minimal()
+}
+
+
+plot_predictions_by_group <- function(model,
+                                      terms,
+                                      y_label = "Predicted value") {
+        
+        predictions <-
+                ggeffects::ggpredict(
+                        model,
+                        terms = terms,
+                        bias_correction = TRUE
+                )
+        
+        ggplot2::ggplot(
+                predictions,
+                ggplot2::aes(
+                        x = x,
+                        y = predicted,
+                        colour = group,
+                        fill = group
+                )
+        ) +
+                ggplot2::geom_line(linewidth = 1) +
+                ggplot2::geom_ribbon(
+                        ggplot2::aes(
+                                ymin = conf.low,
+                                ymax = conf.high
+                        ),
+                        alpha = 0.2,
+                        colour = NA
+                ) +
+                ggplot2::labs(
+                        x = terms[1],
+                        y = y_label,
+                        colour = "Payoff Group",
+                        fill = "Payoff Group"
+                ) +
+                ggplot2::theme_minimal()
+}
+
+
+# Random Effects
+
+plot_random_intercepts <- function(model) {
+        
+        random_effects <-
+                lme4::ranef(
+                        model
+                )$id |>
+                tibble::rownames_to_column(
+                        "participant"
+                )
+        
+        ggplot2::ggplot(
+                random_effects,
+                ggplot2::aes(
+                        x = `(Intercept)`
+                )
+        ) +
+                ggplot2::geom_histogram(
+                        bins = 30
+                ) +
+                ggplot2::labs(
+                        x = "Participant Random Intercept",
+                        y = "Count"
+                ) +
+                ggplot2::theme_minimal()
+}
+
+
+plot_random_slopes <- function(model) {
+        
+        random_effects <-
+                lme4::ranef(model)$id |>
+                tibble::rownames_to_column("participant")
+        
+        if (!"trial_c" %in% names(random_effects)) {
+                stop("Model does not contain a trial_c random slope.")
+        }
+        
+        ggplot2::ggplot(
+                random_effects,
+                ggplot2::aes(
+                        x = trial_c
+                )
+        ) +
+                ggplot2::geom_histogram(
+                        bins = 30
+                ) +
+                ggplot2::labs(
+                        x = "Participant Trial Slope",
+                        y = "Count"
+                ) +
+                ggplot2::theme_minimal()
+}
+
+
+# Linear Mixed Model Residual Visualization
+
+plot_lmm_residuals <- function(model) {
+        
+        residual_data <- tibble::tibble(
+                fitted = fitted(model),
+                residuals = residuals(model)
+        )
+        
+        ggplot2::ggplot(
+                residual_data,
+                ggplot2::aes(
+                        x = fitted,
+                        y = residuals
+                )
+        ) +
+                ggplot2::geom_point(
+                        alpha = 0.3
+                ) +
+                ggplot2::geom_hline(
+                        yintercept = 0
+                ) +
+                ggplot2::labs(
+                        x = "Fitted Values",
+                        y = "Residuals"
+                ) +
+                ggplot2::theme_minimal()
+}
+
+
+plot_lmm_qq <- function(model) {
+        
+        qq_data <- tibble::tibble(
+                theoretical = stats::qqnorm(
+                        residuals(model),
+                        plot.it = FALSE
+                )$x,
+                sample = stats::qqnorm(
+                        residuals(model),
+                        plot.it = FALSE
+                )$y
+        )
+        
+        ggplot2::ggplot(
+                qq_data,
+                ggplot2::aes(
+                        x = theoretical,
+                        y = sample
+                )
+        ) +
+                ggplot2::geom_point() +
+                ggplot2::geom_abline(
+                        intercept = 0,
+                        slope = 1
+                ) +
+                ggplot2::labs(
+                        x = "Theoretical Quantiles",
+                        y = "Sample Quantiles"
+                ) +
+                ggplot2::theme_minimal()
+}
+
+
+# Logistic Mixed Model Diagnostics Visualization
+
+plot_glmm_diagnostics <- function(model) {
+        
+        simulation <-
+                DHARMa::simulateResiduals(
+                        fittedModel = model
+                )
+        
+        plot(simulation)
+}
+
+
+# Model Comparison
+
+add_delta_aic <- function(comparison_table) {
+        
+        comparison_table |>
+                dplyr::mutate(
+                        delta_AIC = AIC - min(AIC)
+                )
+}
+
+
+plot_model_comparison <- function(comparison_table) {
+        
+        comparison_table |>
+                ggplot2::ggplot(
+                        ggplot2::aes(
+                                x = reorder(model, delta_AIC),
+                                y = delta_AIC
+                        )
+                ) +
+                ggplot2::geom_col() +
+                ggplot2::coord_flip() +
+                ggplot2::labs(
+                        x = NULL,
+                        y = expression(Delta * " AIC")
+                ) +
+                ggplot2::theme_minimal()
+}
+
+
+# Model Performance Summary
+
+plot_model_performance <- function(model) {
+        
+        performance::check_model(model)
+}
