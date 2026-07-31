@@ -87,17 +87,17 @@ create_optimal_choice <- function(data) {
         data |>
                 dplyr::rowwise() |>
                 dplyr::mutate(
-                        
                         max_reward = max(
                                 dplyr::c_across(reward_c1:reward_c4),
                                 na.rm = TRUE
                         ),
-                        
-                        optimal_choice = dplyr::case_when(
-                                choice == 1 ~ reward_c1 == max_reward,
-                                choice == 2 ~ reward_c2 == max_reward,
-                                choice == 3 ~ reward_c3 == max_reward,
-                                choice == 4 ~ reward_c4 == max_reward
+                        optimal_choice = as.integer(
+                                dplyr::case_when(
+                                        choice == 1 ~ reward_c1 == max_reward,
+                                        choice == 2 ~ reward_c2 == max_reward,
+                                        choice == 3 ~ reward_c3 == max_reward,
+                                        choice == 4 ~ reward_c4 == max_reward
+                                )
                         )
                 ) |>
                 dplyr::ungroup() |>
@@ -109,14 +109,21 @@ create_choice_switch <- function(data) {
         data |>
                 dplyr::group_by(id) |>
                 dplyr::mutate(
-                        choice_switch =
-                                dplyr::if_else(
-                                        dplyr::row_number() == 1,
-                                        NA,
-                                        choice != dplyr::lag(choice)
-                                )
+                        choice_switch = dplyr::if_else(
+                                dplyr::row_number() == 1,
+                                NA_real_,
+                                as.numeric(choice != dplyr::lag(choice))
+                        )
                 ) |>
                 dplyr::ungroup()
+}
+
+convert_payoff_group <- function(data) {
+        
+        data |>
+                dplyr::mutate(
+                        payoff_group = factor(payoff_group)
+                )
 }
 
 preprocess_data <- function(data = load_raw_data()) {
@@ -126,8 +133,8 @@ preprocess_data <- function(data = load_raw_data()) {
                 remove_nonresponse_trials() |>
                 create_trial_index() |>
                 create_optimal_choice() |>
-                create_choice_switch()
-                
+                create_choice_switch() |>
+                convert_payoff_group()
 }
 
 inspect_invalid_values <- function(data) {
