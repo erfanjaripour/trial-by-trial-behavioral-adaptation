@@ -1,0 +1,2 @@
+participants,trials,missing_reward,missing_log_rt,missing_payoff_maximizing_choice,missing_choice_switch,mean_reward,sd_reward,mean_log_rt,sd_log_rt,payoff_maximizing_choice_rate,choice_switch_rate
+965,139816,0,1,0,965,58.52994650111575,18.16627509600248,6.939599147402233,0.38511615283593825,0.613520627109916,0.39405549833994713
