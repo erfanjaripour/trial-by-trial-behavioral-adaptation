@@ -64,7 +64,11 @@ The project uses R, Quarto, Git, and renv to ensure computational reproducibilit
 
 
 
-The primary analysis fits a logistic mixed-effects model to examine changes in the probability of selecting the objectively optimal choice across trials while accounting for participant-level variability.
+The primary analysis fits a logistic mixed-effects model to examine changes in the probability of selecting the objectively payoff-maximizing choice across trials while accounting for participant-level variability.
+
+
+
+Choice-switch models excluded the first trial of each participant because switching requires a previous choice.
 
 
 
@@ -72,7 +76,7 @@ The primary analysis fits a logistic mixed-effects model to examine changes in t
 
 
 
-An optimal choice is defined as selecting an option whose reward value equals the maximum reward value available on that trial. When two options share the maximum reward value, selecting either option is classified as an optimal choice.
+A payoff-maximizing choice is defined as selecting an option whose reward value equals the maximum reward value available on that trial. When two options share the maximum reward value, selecting either option is classified as a payoff-maximizing choice.
 
 
 

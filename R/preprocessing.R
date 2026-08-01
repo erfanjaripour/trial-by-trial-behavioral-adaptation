@@ -13,7 +13,7 @@ load_raw_data <- function(
 }
 
 load_processed_data <- function(
-                path = here::here("data", "processed", "processed_data.csv")
+                path = here::here("data", "processed", "processed-data.csv")
 ) {
         
         stopifnot(file.exists(path))
@@ -26,7 +26,7 @@ load_processed_data <- function(
 
 save_processed_data <- function(
                 data,
-                path = here::here("data", "processed", "processed_data.csv")
+                path = here::here("data", "processed", "processed-data.csv")
 ) {
         
         readr::write_csv(data, path)
@@ -45,6 +45,14 @@ clean_invalid_rt <- function(data) {
                                 NA_real_,
                                 rt
                         )
+                )
+}
+
+add_log_rt <- function(data) {
+        
+        data |>
+                dplyr::mutate(
+                        log_rt = log(rt)
                 )
 }
 
@@ -82,7 +90,7 @@ create_trial_index <- function(data) {
                 dplyr::ungroup()
 }
 
-create_optimal_choice <- function(data) {
+create_payoff_maximizing_choice <- function(data) {
         
         data |>
                 dplyr::rowwise() |>
@@ -91,7 +99,7 @@ create_optimal_choice <- function(data) {
                                 dplyr::c_across(reward_c1:reward_c4),
                                 na.rm = TRUE
                         ),
-                        optimal_choice = as.integer(
+                        payoff_maximizing_choice = as.integer(
                                 dplyr::case_when(
                                         choice == 1 ~ reward_c1 == max_reward,
                                         choice == 2 ~ reward_c2 == max_reward,
@@ -130,9 +138,10 @@ preprocess_data <- function(data = load_raw_data()) {
         
         data |>
                 clean_invalid_rt() |>
+                add_log_rt() |>
                 remove_nonresponse_trials() |>
                 create_trial_index() |>
-                create_optimal_choice() |>
+                create_payoff_maximizing_choice() |>
                 create_choice_switch() |>
                 convert_payoff_group()
 }
@@ -299,7 +308,7 @@ verify_dataset <- function(data) {
                 "reward",
                 "rt",
                 "payoff_group",
-                "optimal_choice",
+                "payoff_maximizing_choice",
                 "choice_switch"
         )
         
@@ -319,8 +328,8 @@ verify_dataset <- function(data) {
                 valid_payoff_group =
                         all(data$payoff_group %in% c(2, 3, 4)),
                 
-                valid_optimal_choice =
-                        all(stats::na.omit(data$optimal_choice) %in% c(TRUE, FALSE)),
+                valid_payoff_maximizing_choice =
+                        all(stats::na.omit(data$payoff_maximizing_choice) %in% c(TRUE, FALSE)),
                 
                 valid_choice_switch =
                         all(stats::na.omit(data$choice_switch) %in% c(TRUE, FALSE)),
@@ -349,6 +358,7 @@ verify_dataset <- function(data) {
                         all()
         )
 }
+
 # Participant Summary
 
 participant_summary <- function(data) {

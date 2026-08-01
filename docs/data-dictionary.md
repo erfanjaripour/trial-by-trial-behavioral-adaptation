@@ -64,7 +64,7 @@ The dataset contains one row per trial per participant.
 
 | trial          |          integer | Sequential trial number within each participant in the analysis-ready dataset.                                                         |
 
-| optimal\_choice |          integer | Whether the participant selected an optimal option on the trial. Values: 0 = No, 1 = Yes.                                       |
+| payoff\_maximizing\_choice |          integer | Binary indicator of whether the participant selected an option with the highest reward value according to the predefined trial-specific reward schedule. When multiple options shared the maximum reward value, selecting any of those options was coded as payoff-maximizing.                                       |
 
 | choice\_switching  |          integer | Whether the participant switched from the previous choice. Values: NA = first trial, 0 = No, 1 = Yes. |
 
@@ -80,7 +80,7 @@ The dataset contains one row per trial per participant.
 
 \* reward records the obtained outcome after the decision.
 
-\* reward\_c1 to reward\_c4 represent the per-trial reward values provided in the dataset. These variables may permit reconstruction of the task's reward schedule or derivation of an optimal choice, subject to verification against the original dataset documentation.
+\* reward\_c1 to reward\_c4 represent the per-trial reward values provided in the dataset. These variables may permit reconstruction of the task's reward schedule or derivation of an payoff-maximizing choice, subject to verification against the original dataset documentation.
 
 \* Raw data are stored unchanged in data/raw/.
 
