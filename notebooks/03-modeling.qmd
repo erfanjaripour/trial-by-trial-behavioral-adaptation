@@ -26,28 +26,28 @@ processed_data <- readr::read_csv(
 )
 ```
 
-# Primary Outcome: Optimal Choice
+# Primary Outcome: Payoff Maximizing Choice
 
 ## Model Fitting
 
 ```{r}
-optimal_null <-
-        fit_optimal_choice_null(
+payoff_maximizing_null <-
+        fit_payoff_maximizing_choice_null(
                 processed_data
         )
 
-optimal_fixed <-
-        fit_optimal_choice_fixed(
+payoff_maximizing_fixed <-
+        fit_payoff_maximizing_choice_fixed(
                 processed_data
         )
 
-optimal_random_slope <-
-        fit_optimal_choice_random_slope(
+payoff_maximizing_random_slope <-
+        fit_payoff_maximizing_choice_random_slope_uncorrelated(
                 processed_data
         )
 
-optimal_interaction <-
-        fit_optimal_choice_interaction(
+payoff_maximizing_interaction <-
+        fit_payoff_maximizing_choice_interaction(
                 processed_data
         )
 ```
@@ -55,54 +55,54 @@ optimal_interaction <-
 ## Model Validation
 
 ```{r}
-model_summary(optimal_null)
+model_summary(payoff_maximizing_null)
 
-model_summary(optimal_fixed)
+model_summary(payoff_maximizing_fixed)
 
-model_summary(optimal_random_slope)
+model_summary(payoff_maximizing_random_slope)
 
-model_summary(optimal_interaction)
+model_summary(payoff_maximizing_interaction)
 
 
 check_convergence(
-        optimal_interaction
+        payoff_maximizing_interaction
 )
 
 check_singularity(
-        optimal_interaction
+        payoff_maximizing_interaction
 )
 ```
 
 ## Model Comparison
 
 ```{r}
-optimal_comparison <-
+payoff_maximizing_comparison <-
         compare_models(
-                null = optimal_null,
-                fixed = optimal_fixed,
-                random_slope = optimal_random_slope,
-                interaction = optimal_interaction
+                null = payoff_maximizing_null,
+                fixed = payoff_maximizing_fixed,
+                random_slope = payoff_maximizing_random_slope,
+                interaction = payoff_maximizing_interaction
         )
 
-optimal_comparison
+payoff_maximizing_comparison
 ```
 
 ```{r}
 compare_nested_models(
-        optimal_null,
-        optimal_fixed,
+        payoff_maximizing_null,
+        payoff_maximizing_fixed,
         test = "Chisq"
 )
 
 compare_nested_models(
-        optimal_fixed,
-        optimal_random_slope,
+        payoff_maximizing_fixed,
+        payoff_maximizing_random_slope,
         test = "Chisq"
 )
 
 compare_nested_models(
-        optimal_random_slope,
-        optimal_interaction,
+        payoff_maximizing_random_slope,
+        payoff_maximizing_interaction,
         test = "Chisq"
 )
 ```
@@ -110,15 +110,15 @@ compare_nested_models(
 ## Diagnostic Evaluation
 
 ```{r}
-optimal_dharma <-
+payoff_maximizing_dharma <-
         DHARMa::simulateResiduals(
-                fittedModel = optimal_interaction
+                fittedModel = payoff_maximizing_interaction
         )
 
-plot(optimal_dharma)
+plot(payoff_maximizing_dharma)
 
 DHARMa::testDispersion(
-        optimal_dharma
+        payoff_maximizing_dharma
 )
 ```
 
@@ -126,19 +126,19 @@ DHARMa::testDispersion(
 
 ```{r}
 plot_predictions_by_group(
-        optimal_interaction,
+        payoff_maximizing_interaction,
         terms = c("trial_c", "payoff_group"),
-        y_label = "Predicted probability of optimal choice"
+        y_label = "Predicted probability of payoff_maximizing choice"
 )
 
 
 plot_random_intercepts(
-        optimal_interaction
+        payoff_maximizing_interaction
 )
 
 
 plot_random_slopes(
-        optimal_interaction
+        payoff_maximizing_interaction
 )
 ```
 
@@ -455,16 +455,16 @@ plot_predictions_by_group(
 ## Quadratic Learning Model
 
 ```{r}
-optimal_quadratic <-
-        fit_optimal_choice_quadratic(
+payoff_maximizing_quadratic <-
+        fit_payoff_maximizing_choice_quadratic(
                 processed_data
         )
 
 
 quadratic_comparison <-
         compare_models(
-                linear = optimal_interaction,
-                quadratic = optimal_quadratic
+                linear = payoff_maximizing_interaction,
+                quadratic = payoff_maximizing_quadratic
         )
 
 quadratic_comparison
@@ -473,16 +473,16 @@ quadratic_comparison
 ## Random-Effects Sensitivity
 
 ```{r}
-optimal_correlated_slope <-
-        fit_optimal_choice_random_slope(
+payoff_maximizing_correlated_slope <-
+        fit_payoff_maximizing_choice_random_slope_correlated(
                 processed_data
         )
 
 
 random_effect_comparison <-
         compare_models(
-                uncorrelated = optimal_random_slope,
-                correlated = optimal_correlated_slope
+                uncorrelated = payoff_maximizing_random_slope,
+                correlated = payoff_maximizing_correlated_slope
         )
 
 random_effect_comparison
@@ -491,9 +491,9 @@ random_effect_comparison
 # Fixed Effects Reporting
 
 ```{r}
-optimal_effects <-
+payoff_maximizing_effects <-
         broom.mixed::tidy(
-                optimal_interaction,
+                payoff_maximizing_interaction,
                 effects = "fixed",
                 conf.int = TRUE
         )
@@ -523,11 +523,1363 @@ switch_effects <-
         )
 
 
-optimal_effects
+payoff_maximizing_effects
 reward_effects
 log_rt_effects
 switch_effects
 ```
+# Final Model Validation
+
+```{r}
+
+check_convergence(payoff_maximizing_interaction)
+check_singularity(payoff_maximizing_interaction)
+model_summary(payoff_maximizing_interaction)
+
+check_convergence(reward_interaction)
+check_singularity(reward_interaction)
+model_summary(reward_interaction)
+
+check_convergence(log_rt_interaction)
+check_singularity(log_rt_interaction)
+model_summary(log_rt_interaction)
+
+check_convergence(switch_interaction)
+check_singularity(switch_interaction)
+model_summary(switch_interaction)
+
+```
+Final model selection was performed after evaluating model convergence, singularity diagnostics, model fit comparisons, residual diagnostics, and sensitivity analyses. The retained models represent the best-supported specifications among the candidate models based on the predefined evaluation criteria. Subsequent analyses and visualizations were conducted using these final model specifications.
+
+# Final Model Selection
+
+```{r}
+
+final_payoff_maximizing_choice_model <- payoff_maximizing_interaction
+
+final_reward_model <- reward_interaction
+
+final_log_rt_model <- log_rt_interaction
+
+final_choice_switch_model <- switch_interaction
+
+```
+
+# Create Results Directory
+
+```{r}
+
+dir.create(
+        here::here(
+                "results",
+                "tables"
+        ),
+        recursive = TRUE,
+        showWarnings = FALSE
+)
+
+dir.create(
+        here::here(
+                "results",
+                "figures"
+        ),
+        recursive = TRUE,
+        showWarnings = FALSE
+)
+
+dir.create(
+        here::here(
+                "results",
+                "models"
+        ),
+        recursive = TRUE,
+        showWarnings = FALSE
+)
+
+dir.create(
+        here::here(
+                "results",
+                "figures",
+                "diagnostics"
+        ),
+        recursive = TRUE,
+        showWarnings = FALSE
+)
+
+```
+
+# Save Final Models
+
+```{r}
+
+saveRDS(
+        final_payoff_maximizing_choice_model,
+        here::here(
+                "results",
+                "models",
+                "final-payoff-maximizing-choice-model.rds"
+        )
+)
+
+saveRDS(
+        final_reward_model,
+        here::here(
+                "results",
+                "models",
+                "final-reward-model.rds"
+        )
+)
+
+saveRDS(
+        final_log_rt_model,
+        here::here(
+                "results",
+                "models",
+                "final-log-rt-model.rds"
+        )
+)
+
+saveRDS(
+        final_choice_switch_model,
+        here::here(
+                "results",
+                "models",
+                "final-choice-switch-model.rds"
+        )
+)
+
+```
+
+# Descriptive Statistics
+
+```{r}
+descriptive_statistics <-
+        descriptive_statistics_table(
+                processed_data
+        )
+
+payoff_group_statistics <-
+        payoff_group_summary(
+                processed_data
+        )
+
+descriptive_statistics
+
+payoff_group_statistics
+```
+
+# Export Descriptive Tables
+
+```{r}
+readr::write_csv(
+        descriptive_statistics,
+        here::here(
+                "results",
+                "tables",
+                "descriptive-statistics.csv"
+        )
+)
+
+readr::write_csv(
+        payoff_group_statistics,
+        here::here(
+                "results",
+                "tables",
+                "payoff-group-statistics.csv"
+        )
+)
+```
+
+# Reward Distribution
+
+```{r}
+reward_distribution <-
+        plot_reward_distribution(
+                processed_data
+        )
+
+reward_distribution
+```
+
+# Log Reaction Time Distribution
+
+```{r}
+log_rt_distribution <-
+        plot_log_rt_distribution(
+                processed_data
+        )
+
+log_rt_distribution
+```
+
+# Choice Distribution
+
+```{r}
+choice_distribution <-
+        plot_choice_distribution(
+                processed_data
+        )
+
+choice_distribution
+```
+
+# Choice Switching Distribution
+
+```{r}
+switch_distribution <-
+        plot_switch_distribution(
+                processed_data
+        )
+
+switch_distribution
+```
+
+# Export Descriptive Figures
+
+```{r}
+ggplot2::ggsave(
+        filename = here::here(
+                "results",
+                "figures",
+                "reward-distribution.pdf"
+        ),
+        plot = reward_distribution,
+        width = 6,
+        height = 4
+)
+
+ggplot2::ggsave(
+        filename = here::here(
+                "results",
+                "figures",
+                "reward-distribution.png"
+        ),
+        plot = reward_distribution,
+        width = 6,
+        height = 4,
+        dpi = 300
+)
+
+ggplot2::ggsave(
+        filename = here::here(
+                "results",
+                "figures",
+                "rt-distribution.pdf"
+        ),
+        plot = log_rt_distribution,
+        width = 6,
+        height = 4
+)
+
+ggplot2::ggsave(
+        filename = here::here(
+                "results",
+                "figures",
+                "rt-distribution.png"
+        ),
+        plot = log_rt_distribution,
+        width = 6,
+        height = 4,
+        dpi = 300
+)
+
+ggplot2::ggsave(
+        filename = here::here(
+                "results",
+                "figures",
+                "choice-distribution.pdf"
+        ),
+        plot = choice_distribution,
+        width = 6,
+        height = 4
+)
+
+ggplot2::ggsave(
+        filename = here::here(
+                "results",
+                "figures",
+                "choice-distribution.png"
+        ),
+        plot = choice_distribution,
+        width = 6,
+        height = 4,
+        dpi = 300
+)
+
+ggplot2::ggsave(
+        filename = here::here(
+                "results",
+                "figures",
+                "switch-distribution.pdf"
+        ),
+        plot = switch_distribution,
+        width = 6,
+        height = 4
+)
+
+ggplot2::ggsave(
+        filename = here::here(
+                "results",
+                "figures",
+                "switch-distribution.png"
+        ),
+        plot = switch_distribution,
+        width = 6,
+        height = 4,
+        dpi = 300
+)
+```
+
+# Extract Fixed Effects
+
+```{r}
+payoff_maximizing_choice_fixed_effects <-
+        broom.mixed::tidy(
+                final_payoff_maximizing_choice_model,
+                effects = "fixed"
+        )
+
+reward_fixed_effects <-
+        broom.mixed::tidy(
+                final_reward_model,
+                effects = "fixed"
+        )
+
+log_rt_fixed_effects <-
+        broom.mixed::tidy(
+                final_log_rt_model,
+                effects = "fixed"
+        )
+
+choice_switch_fixed_effects <-
+        broom.mixed::tidy(
+                final_choice_switch_model,
+                effects = "fixed"
+        )
+
+
+payoff_maximizing_choice_confidence_intervals <-
+        model_confidence_intervals(
+                final_payoff_maximizing_choice_model
+        ) |>
+        as.data.frame() |>
+        tibble::rownames_to_column(
+                "term"
+        )
+
+
+reward_confidence_intervals <-
+        model_confidence_intervals(
+                final_reward_model
+        ) |>
+        as.data.frame() |>
+        tibble::rownames_to_column(
+                "term"
+        )
+
+
+log_rt_confidence_intervals <-
+        model_confidence_intervals(
+                final_log_rt_model
+        ) |>
+        as.data.frame() |>
+        tibble::rownames_to_column(
+                "term"
+        )
+
+
+choice_switch_confidence_intervals <-
+        model_confidence_intervals(
+                final_choice_switch_model
+        ) |>
+        as.data.frame() |>
+        tibble::rownames_to_column(
+                "term"
+        )
+
+
+payoff_maximizing_choice_fixed_effects
+
+reward_fixed_effects
+
+log_rt_fixed_effects
+
+choice_switch_fixed_effects
+```
+
+# Logistic Model Odds Ratios
+
+```{r}
+payoff_maximizing_choice_odds_ratios <-
+        model_odds_ratios(
+                final_payoff_maximizing_choice_model
+        )
+
+choice_switch_odds_ratios <-
+        model_odds_ratios(
+                final_choice_switch_model
+        )
+
+
+payoff_maximizing_choice_odds_ratios
+
+choice_switch_odds_ratios
+```
+
+# Export Fixed Effects Tables
+
+```{r}
+readr::write_csv(
+        payoff_maximizing_choice_fixed_effects,
+        here::here(
+                "results",
+                "tables",
+                "payoff-maximizing-choice-fixed-effects.csv"
+        )
+)
+
+readr::write_csv(
+        reward_fixed_effects,
+        here::here(
+                "results",
+                "tables",
+                "reward-fixed-effects.csv"
+        )
+)
+
+readr::write_csv(
+        log_rt_fixed_effects,
+        here::here(
+                "results",
+                "tables",
+                "log-rt-fixed-effects.csv"
+        )
+)
+
+readr::write_csv(
+        choice_switch_fixed_effects,
+        here::here(
+                "results",
+                "tables",
+                "choice-switch-fixed-effects.csv"
+        )
+)
+```
+# Export Confidence Intervals
+
+```{r}
+readr::write_csv(
+        payoff_maximizing_choice_confidence_intervals,
+        here::here(
+                "results",
+                "tables",
+                "payoff-maximizing-choice-confidence-intervals.csv"
+        )
+)
+
+readr::write_csv(
+        reward_confidence_intervals,
+        here::here(
+                "results",
+                "tables",
+                "reward-confidence-intervals.csv"
+        )
+)
+
+readr::write_csv(
+        log_rt_confidence_intervals,
+        here::here(
+                "results",
+                "tables",
+                "log-rt-confidence-intervals.csv"
+        )
+)
+
+readr::write_csv(
+        choice_switch_confidence_intervals,
+        here::here(
+                "results",
+                "tables",
+                "choice-switch-confidence-intervals.csv"
+        )
+)
+```
+
+# Export Odds Ratios
+
+```{r}
+readr::write_csv(
+        payoff_maximizing_choice_odds_ratios,
+        here::here(
+                "results",
+                "tables",
+                "payoff-maximizing-choice-odds-ratios.csv"
+        )
+)
+
+readr::write_csv(
+        choice_switch_odds_ratios,
+        here::here(
+                "results",
+                "tables",
+                "choice-switch-odds-ratios.csv"
+        )
+)
+```
+
+# Random-Effects Variance Summary
+
+```{r}
+extract_random_effects <- function(model, model_name) {
+
+        lme4::VarCorr(model) |>
+                as.data.frame() |>
+                dplyr::mutate(
+                        model = model_name
+                ) |>
+                dplyr::select(
+                        model,
+                        grp,
+                        var1,
+                        var2,
+                        vcov,
+                        sdcor
+                )
+}
+
+
+payoff_maximizing_choice_random_effects <-
+        extract_random_effects(
+                final_payoff_maximizing_choice_model,
+                "payoff_maximizing_choice"
+        )
+
+
+reward_random_effects <-
+        extract_random_effects(
+                final_reward_model,
+                "reward"
+        )
+
+
+log_rt_random_effects <-
+        extract_random_effects(
+                final_log_rt_model,
+                "log_rt"
+        )
+
+
+choice_switch_random_effects <-
+        extract_random_effects(
+                final_choice_switch_model,
+                "choice_switch"
+        )
+
+
+random_effects_summary <-
+        dplyr::bind_rows(
+                payoff_maximizing_choice_random_effects,
+                reward_random_effects,
+                log_rt_random_effects,
+                choice_switch_random_effects
+        )
+
+
+random_effects_summary
+```
+
+# Export Random-Effects Summary
+
+```{r}
+readr::write_csv(
+        random_effects_summary,
+        here::here(
+                "results",
+                "tables",
+                "random-effects-summary.csv"
+        )
+)
+```
+
+# Primary Model Random-Effects Distributions
+
+```{r}
+payoff_maximizing_choice_random_intercepts <-
+        plot_random_intercepts(
+                final_payoff_maximizing_choice_model
+        )
+
+
+payoff_maximizing_choice_random_slopes <-
+        plot_random_slopes(
+                final_payoff_maximizing_choice_model
+        )
+
+
+payoff_maximizing_choice_random_intercepts
+
+payoff_maximizing_choice_random_slopes
+```
+
+# Export Random-Effects Figures
+
+```{r}
+ggplot2::ggsave(
+        filename = here::here(
+                "results",
+                "figures",
+                "random-intercepts-payoff-maximizing-choice.pdf"
+        ),
+        plot = payoff_maximizing_choice_random_intercepts,
+        width = 6,
+        height = 4
+)
+
+
+ggplot2::ggsave(
+        filename = here::here(
+                "results",
+                "figures",
+                "random-intercepts-payoff-maximizing-choice.png"
+        ),
+        plot = payoff_maximizing_choice_random_intercepts,
+        width = 6,
+        height = 4,
+        dpi = 300
+)
+
+
+ggplot2::ggsave(
+        filename = here::here(
+                "results",
+                "figures",
+                "random-slopes-payoff-maximizing-choice.pdf"
+        ),
+        plot = payoff_maximizing_choice_random_slopes,
+        width = 6,
+        height = 4
+)
+
+
+ggplot2::ggsave(
+        filename = here::here(
+                "results",
+                "figures",
+                "random-slopes-payoff-maximizing-choice.png"
+        ),
+        plot = payoff_maximizing_choice_random_slopes,
+        width = 6,
+        height = 4,
+        dpi = 300
+)
+```
+
+# Main Figure export settings
+
+```{r}
+figure_width <- 7
+figure_height <- 5
+figure_dpi <- 300
+```
+
+# Figure 1: Predicted probability of payoff maximizing choice
+
+```{r}
+figure_payoff_maximizing_choice <-
+        plot_predictions_by_group(
+                final_payoff_maximizing_choice_model,
+                terms = c(
+                        "trial_c [seq(-75,75,by=5)]",
+                        "payoff_group"
+                ),
+                y_label = "Predicted probability of payoff maximizing choice"
+        )
+
+
+figure_payoff_maximizing_choice
+```
+
+```{r export}
+ggplot2::ggsave(
+        filename = here::here(
+                "results",
+                "figures",
+                "figure-1-payoff-maximizing-choice-probability.pdf"
+        ),
+        plot = figure_payoff_maximizing_choice,
+        width = figure_width,
+        height = figure_height
+)
+
+
+ggplot2::ggsave(
+        filename = here::here(
+                "results",
+                "figures",
+                "figure-1-payoff-maximizing-choice-probability.png"
+        ),
+        plot = figure_payoff_maximizing_choice,
+        width = figure_width,
+        height = figure_height,
+        dpi = figure_dpi
+)
+```
+
+# Figure 2: Predicted reward trajectory
+
+```{r}
+figure_reward_trajectory <-
+        plot_predictions_by_group(
+                final_reward_model,
+                terms = c(
+                        "trial_c [seq(-75,75,by=5)]",
+                        "payoff_group"
+                ),
+                y_label = "Predicted reward"
+        )
+
+
+figure_reward_trajectory
+```
+
+```{r export}
+
+ggplot2::ggsave(
+        filename = here::here(
+                "results",
+                "figures",
+                "figure-2-reward-trajectory.pdf"
+        ),
+        plot = figure_reward_trajectory,
+        width = figure_width,
+        height = figure_height
+)
+
+
+ggplot2::ggsave(
+        filename = here::here(
+                "results",
+                "figures",
+                "figure-2-reward-trajectory.png"
+        ),
+        plot = figure_reward_trajectory,
+        width = figure_width,
+        height = figure_height,
+        dpi = figure_dpi
+)
+```
+
+# Figure 3: Predicted log reaction time trajectory
+
+```{r}
+figure_reaction_time_trajectory <-
+        plot_predictions_by_group(
+                final_log_rt_model,
+                terms = c(
+                        "trial_c [seq(-75,75,by=5)]",
+                        "payoff_group"
+                ),
+                y_label = "Predicted log reaction time"
+        )
+
+
+figure_reaction_time_trajectory
+```
+
+```{r export}
+ggplot2::ggsave(
+        filename = here::here(
+                "results",
+                "figures",
+                "figure-3-reaction-time-trajectory.pdf"
+        ),
+        plot = figure_reaction_time_trajectory,
+        width = figure_width,
+        height = figure_height
+)
+
+
+ggplot2::ggsave(
+        filename = here::here(
+                "results",
+                "figures",
+                "figure-3-reaction-time-trajectory.png"
+        ),
+        plot = figure_reaction_time_trajectory,
+        width = figure_width,
+        height = figure_height,
+        dpi = figure_dpi
+)
+```
+
+# Figure 4: Predicted choice-switch probability
+
+```{r}
+
+figure_choice_switch_probability <-
+        plot_predictions_by_group(
+                final_choice_switch_model,
+                terms = c(
+                        "trial_c [seq(-75,75,by=5)]",
+                        "payoff_group"
+                ),
+                y_label = "Predicted probability of switching"
+        )
+
+
+figure_choice_switch_probability
+```
+
+```{r export}
+ggplot2::ggsave(
+        filename = here::here(
+                "results",
+                "figures",
+                "figure-4-choice-switch-probability.pdf"
+        ),
+        plot = figure_choice_switch_probability,
+        width = figure_width,
+        height = figure_height
+)
+
+
+ggplot2::ggsave(
+        filename = here::here(
+                "results",
+                "figures",
+                "figure-4-choice-switch-probability.png"
+        ),
+        plot = figure_choice_switch_probability,
+        width = figure_width,
+        height = figure_height,
+        dpi = figure_dpi
+)
+```
+
+# Generate effect-size plots
+
+```{r}
+payoff_maximizing_odds_ratio_plot <-
+        plot_odds_ratios(
+                final_payoff_maximizing_choice_model
+        )
+
+
+reward_coefficient_plot <-
+        plot_fixed_effects(
+                final_reward_model
+        )
+
+
+log_rt_coefficient_plot <-
+        plot_fixed_effects(
+                final_log_rt_model
+        )
+
+
+switch_odds_ratio_plot <-
+        plot_odds_ratios(
+                final_choice_switch_model
+        )
+
+
+payoff_maximizing_odds_ratio_plot
+
+reward_coefficient_plot
+
+log_rt_coefficient_plot
+
+switch_odds_ratio_plot
+```
+
+```{r export}
+effect_plots <- list(
+        payoff_maximizing_choice_odds_ratios =
+                payoff_maximizing_odds_ratio_plot,
+        reward_coefficients =
+                reward_coefficient_plot,
+        log_rt_coefficients =
+                log_rt_coefficient_plot,
+        choice_switch_odds_ratios =
+                switch_odds_ratio_plot
+)
+
+
+purrr::iwalk(
+        effect_plots,
+        function(plot_object, plot_name) {
+
+                ggplot2::ggsave(
+                        filename = here::here(
+                                "results",
+                                "figures",
+                                paste0(
+                                        plot_name,
+                                        ".pdf"
+                                )
+                        ),
+                        plot = plot_object,
+                        width = figure_width,
+                        height = figure_height
+                )
+
+
+                ggplot2::ggsave(
+                        filename = here::here(
+                                "results",
+                                "figures",
+                                paste0(
+                                        plot_name,
+                                        ".png"
+                                )
+                        ),
+                        plot = plot_object,
+                        width = figure_width,
+                        height = figure_height,
+                        dpi = figure_dpi
+                )
+        }
+)
+```
+
+# Model Comparison Results
+
+```{r}
+payoff_maximizing_model_comparison <-
+        compare_models(
+                null = payoff_maximizing_null,
+                fixed = payoff_maximizing_fixed,
+                random_slope = payoff_maximizing_random_slope,
+                interaction = payoff_maximizing_interaction
+        ) |>
+        dplyr::mutate(
+                delta_AIC = AIC - min(AIC),
+                outcome = "payoff_maximizing_choice"
+        )
+
+
+reward_model_comparison <-
+        compare_models(
+                null = reward_null,
+                fixed = reward_fixed,
+                random_slope = reward_random_slope,
+                interaction = reward_interaction
+        ) |>
+        dplyr::mutate(
+                delta_AIC = AIC - min(AIC),
+                outcome = "reward"
+        )
+
+
+log_rt_model_comparison <-
+        compare_models(
+                null = log_rt_null,
+                fixed = log_rt_fixed,
+                random_slope = log_rt_random_slope,
+                interaction = log_rt_interaction
+        ) |>
+        dplyr::mutate(
+                delta_AIC = AIC - min(AIC),
+                outcome = "log_rt"
+        )
+
+
+switch_model_comparison <-
+        compare_models(
+                null = switch_null,
+                fixed = switch_fixed,
+                random_slope = switch_random_slope,
+                interaction = switch_interaction
+        ) |>
+        dplyr::mutate(
+                delta_AIC = AIC - min(AIC),
+                outcome = "choice_switch"
+        )
+```
+
+```{r export}
+readr::write_csv(
+        payoff_maximizing_model_comparison,
+        here::here(
+                "results",
+                "tables",
+                "payoff-maximizing-model-comparison.csv"
+        )
+)
+
+
+readr::write_csv(
+        reward_model_comparison,
+        here::here(
+                "results",
+                "tables",
+                "reward-model-comparison.csv"
+        )
+)
+
+
+readr::write_csv(
+        log_rt_model_comparison,
+        here::here(
+                "results",
+                "tables",
+                "log-rt-model-comparison.csv"
+        )
+)
+
+
+readr::write_csv(
+        switch_model_comparison,
+        here::here(
+                "results",
+                "tables",
+                "choice-switch-model-comparison.csv"
+        )
+)
+```
+
+# Combined Comparison Table
+
+```{r}
+model_comparison_all_outcomes <-
+        dplyr::bind_rows(
+                payoff_maximizing_model_comparison,
+                reward_model_comparison,
+                log_rt_model_comparison,
+                switch_model_comparison
+        )
+
+
+readr::write_csv(
+        model_comparison_all_outcomes,
+        here::here(
+                "results",
+                "tables",
+                "model-comparison-all-outcomes.csv"
+        )
+)
+
+
+model_comparison_all_outcomes
+```
+
+# Model comparison visualization
+
+```{r}
+payoff_maximizing_model_comparison_plot <-
+        plot_model_comparison(
+                payoff_maximizing_model_comparison
+        )
+
+
+payoff_maximizing_model_comparison_plot
+```
+
+```{r export}
+ggplot2::ggsave(
+        filename = here::here(
+                "results",
+                "figures",
+                "comparison-plot.pdf"
+        ),
+        plot = payoff_maximizing_model_comparison_plot,
+        width = figure_width,
+        height = figure_height
+)
+
+
+ggplot2::ggsave(
+        filename = here::here(
+                "results",
+                "figures",
+                "comparison-plot.png"
+        ),
+        plot = payoff_maximizing_model_comparison_plot,
+        width = figure_width,
+        height = figure_height,
+        dpi = figure_dpi
+)
+```
+
+# GLMM Diagnostics
+
+## Payoff maximizing choice model
+
+```{r}
+payoff_maximizing_dharma <-
+        DHARMa::simulateResiduals(
+                fittedModel = final_payoff_maximizing_choice_model
+        )
+
+
+pdf(
+        here::here(
+                "results",
+                "figures",
+                "diagnostics",
+                "payoff-maximizing-choice-DHARMa.pdf"
+        ),
+        width = 7,
+        height = 5
+)
+
+plot(payoff_maximizing_dharma)
+
+dev.off()
+
+
+DHARMa::testDispersion(
+        payoff_maximizing_dharma
+)
+```
+
+## Choice switching model
+
+```{r}
+switch_dharma <-
+        DHARMa::simulateResiduals(
+                fittedModel = final_choice_switch_model
+        )
+
+
+pdf(
+        here::here(
+                "results",
+                "figures",
+                "diagnostics",
+                "choice-switch-DHARMa.pdf"
+        ),
+        width = 7,
+        height = 5
+)
+
+plot(switch_dharma)
+
+dev.off()
+
+
+DHARMa::testDispersion(
+        switch_dharma
+)
+```
+
+# LMM Diagnostics
+
+## Reward model
+
+```{r}
+reward_residual_plot <-
+        plot_lmm_residuals(
+                final_reward_model
+        )
+
+
+reward_qq_plot <-
+        plot_lmm_qq(
+                final_reward_model
+        )
+
+
+ggplot2::ggsave(
+        filename = here::here(
+                "results",
+                "figures",
+                "diagnostics",
+                "reward-residuals.pdf"
+        ),
+        plot = reward_residual_plot,
+        width = 7,
+        height = 5
+)
+
+
+ggplot2::ggsave(
+        filename = here::here(
+                "results",
+                "figures",
+                "diagnostics",
+                "reward-QQ.pdf"
+        ),
+        plot = reward_qq_plot,
+        width = 7,
+        height = 5
+)
+```
+
+## Log RT model
+
+```{r}
+log_rt_residual_plot <-
+        plot_lmm_residuals(
+                final_log_rt_model
+        )
+
+
+log_rt_qq_plot <-
+        plot_lmm_qq(
+                final_log_rt_model
+        )
+
+
+ggplot2::ggsave(
+        filename = here::here(
+                "results",
+                "figures",
+                "diagnostics",
+                "log-rt-residuals.pdf"
+        ),
+        plot = log_rt_residual_plot,
+        width = 7,
+        height = 5
+)
+
+
+ggplot2::ggsave(
+        filename = here::here(
+                "results",
+                "figures",
+                "diagnostics",
+                "log-rt-QQ.pdf"
+        ),
+        plot = log_rt_qq_plot,
+        width = 7,
+        height = 5
+)
+```
+
+# Random-Effects Sensitivity
+
+```{r}
+random_effects_robustness <-
+        tibble::tibble(
+
+                model = c(
+                        "uncorrelated_random_slope"
+                ),
+
+                AIC = c(
+                        AIC(payoff_maximizing_interaction)
+                ),
+
+                BIC = c(
+                        BIC(payoff_maximizing_interaction)
+                ),
+
+                logLik = c(
+                        as.numeric(
+                                logLik(payoff_maximizing_interaction)
+                        )
+                ),
+
+                convergence = c(
+                        check_convergence(
+                                payoff_maximizing_interaction
+                        )
+                ),
+
+                singularity = c(
+                        lme4::isSingular(
+                                payoff_maximizing_interaction
+                        )
+                )
+        )
+
+
+readr::write_csv(
+        random_effects_robustness,
+        here::here(
+                "results",
+                "tables",
+                "random-effects-robustness.csv"
+        )
+)
+```
+
+# Quadratic Trial Sensitivity
+
+```{r}
+quadratic_robustness <-
+        tibble::tibble(
+
+                model = c(
+                        "linear_trial",
+                        "quadratic_trial"
+                ),
+
+                AIC = c(
+                        AIC(payoff_maximizing_interaction),
+                        AIC(payoff_maximizing_quadratic)
+                ),
+
+                BIC = c(
+                        BIC(payoff_maximizing_interaction),
+                        BIC(payoff_maximizing_quadratic)
+                ),
+
+                logLik = c(
+                        as.numeric(
+                                logLik(payoff_maximizing_interaction)
+                        ),
+
+                        as.numeric(
+                                logLik(payoff_maximizing_quadratic)
+                        )
+                )
+
+        )
+
+
+quadratic_robustness <-
+        quadratic_robustness |>
+        dplyr::mutate(
+                delta_AIC = AIC - min(AIC)
+        )
+
+
+readr::write_csv(
+        quadratic_robustness,
+        here::here(
+                "results",
+                "tables",
+                "quadratic-trial-robustness.csv"
+        )
+)
+```
+
+# Overall Robustness Summary
+
+```{r}
+robustness_summary <-
+        tibble::tibble(
+
+                analysis = c(
+                        "Random-effects specification",
+                        "Trial functional form"
+                ),
+
+                comparison = c(
+                        "Uncorrelated versus correlated random slope",
+                        "Linear versus quadratic trial trajectory"
+                ),
+
+                criteria = c(
+                        "AIC, BIC, logLik, convergence, singularity",
+                        "AIC, BIC, logLik"
+                )
+
+        )
+
+
+readr::write_csv(
+        robustness_summary,
+        here::here(
+                "results",
+                "tables",
+                "robustness-summary.csv"
+        )
+)
+```
+
 # Computational Environment
 
 ```{r}

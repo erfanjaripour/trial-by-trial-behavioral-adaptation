@@ -8,28 +8,10 @@ center_trial <- function(data) {
                 )
 }
 
-
 add_trial_quadratic <- function(data) {
         
         data |>
                 center_trial() |>
-                dplyr::mutate(
-                        trial_c2 = trial_c^2
-                )
-}
-
-
-add_log_rt <- function(data) {
-        
-        data |>
-                dplyr::mutate(
-                        log_rt = log(rt)
-                )
-}
-
-add_trial_quadratic <- function(data) {
-        
-        center_trial(data) |>
                 dplyr::mutate(
                         trial_c2 = as.numeric(
                                 scale(trial_c^2)
@@ -37,62 +19,60 @@ add_trial_quadratic <- function(data) {
                 )
 }
 
-# Primary Outcome: Optimal Choice
+# Primary Outcome: Payoff Maximizing Choice
 
-fit_optimal_choice_null <- function(data) {
+fit_payoff_maximizing_choice_null <- function(data) {
         
         lme4::glmer(
-                optimal_choice ~ 1 +
+                payoff_maximizing_choice ~ 1 +
                         (1 | id),
                 data = center_trial(data),
                 family = binomial(link = "logit")
         )
 }
 
-
-fit_optimal_choice_fixed <- function(data) {
+fit_payoff_maximizing_choice_fixed <- function(data) {
         
         lme4::glmer(
-                optimal_choice ~ trial_c + payoff_group +
+                payoff_maximizing_choice ~ trial_c + payoff_group +
                         (1 | id),
                 data = center_trial(data),
                 family = binomial(link = "logit")
         )
 }
 
-
-fit_optimal_choice_random_slope <- function(data) {
+fit_payoff_maximizing_choice_random_slope_uncorrelated <- function(data){
         
-        lme4::glmer(
-                optimal_choice ~ trial_c + payoff_group +
+        glmer(
+                payoff_maximizing_choice ~ trial_c + payoff_group +
                         (1 + trial_c || id),
-                data = center_trial(data),
-                family = binomial(link = "logit")
+                data=center_trial(data),
+                family=binomial
         )
+        
 }
 
 
-fit_optimal_choice_random_slope <- function(data) {
+fit_payoff_maximizing_choice_random_slope_correlated <- function(data){
         
-        lme4::glmer(
-                optimal_choice ~ trial_c + payoff_group +
+        glmer(
+                payoff_maximizing_choice ~ trial_c + payoff_group +
                         (1 + trial_c | id),
-                data = center_trial(data),
-                family = binomial(link = "logit")
+                data=center_trial(data),
+                family=binomial
         )
+        
 }
 
-
-fit_optimal_choice_interaction <- function(data) {
+fit_payoff_maximizing_choice_interaction <- function(data) {
         
         lme4::glmer(
-                optimal_choice ~ trial_c * payoff_group +
+                payoff_maximizing_choice ~ trial_c * payoff_group +
                         (1 + trial_c || id),
                 data = center_trial(data),
                 family = binomial(link = "logit")
         )
 }
-
 
 # Secondary Outcome: Reward
 
@@ -106,7 +86,6 @@ fit_reward_null <- function(data) {
         )
 }
 
-
 fit_reward_fixed <- function(data) {
         
         lme4::lmer(
@@ -117,7 +96,6 @@ fit_reward_fixed <- function(data) {
         )
 }
 
-
 fit_reward_random_slope <- function(data) {
         
         lme4::lmer(
@@ -127,7 +105,6 @@ fit_reward_random_slope <- function(data) {
                 REML = FALSE
         )
 }
-
 
 fit_reward_random_slope <- function(data) {
         
@@ -139,7 +116,6 @@ fit_reward_random_slope <- function(data) {
         )
 }
 
-
 fit_reward_interaction <- function(data) {
         
         lme4::lmer(
@@ -150,7 +126,6 @@ fit_reward_interaction <- function(data) {
         )
 }
 
-
 # Secondary Outcome: Reaction Time
 
 fit_log_rt_null <- function(data) {
@@ -158,44 +133,40 @@ fit_log_rt_null <- function(data) {
         lme4::lmer(
                 log_rt ~ 1 +
                         (1 | id),
-                data = center_trial(add_log_rt(data)),
+                data = center_trial(data),
                 REML = FALSE
         )
 }
-
 
 fit_log_rt_fixed <- function(data) {
         
         lme4::lmer(
                 log_rt ~ trial_c + payoff_group +
                         (1 | id),
-                data = center_trial(add_log_rt(data)),
+                data = center_trial(data),
                 REML = FALSE
         )
 }
-
 
 fit_log_rt_random_slope <- function(data) {
         
         lme4::lmer(
                 log_rt ~ trial_c + payoff_group +
                         (1 + trial_c || id),
-                data = center_trial(add_log_rt(data)),
+                data = center_trial(data),
                 REML = FALSE
         )
 }
-
 
 fit_log_rt_interaction <- function(data) {
         
         lme4::lmer(
                 log_rt ~ trial_c * payoff_group +
-                        (1 + trial_c || id),
-                data = center_trial(add_log_rt(data)),
+                        (1 | id),
+                data = center_trial(data),
                 REML = FALSE
         )
 }
-
 
 # Secondary Outcome: Choice Switch
 
@@ -208,7 +179,6 @@ fit_choice_switch_null <- function(data) {
                 family = binomial(link = "logit")
         )
 }
-
 
 fit_choice_switch_fixed <- function(data) {
         
@@ -240,7 +210,6 @@ fit_choice_switch_interaction <- function(data) {
         )
 }
 
-
 # Model Comparison
 
 compare_models <- function(...) {
@@ -262,7 +231,6 @@ compare_models <- function(...) {
         )
 }
 
-
 compare_nested_models <- function(model1, model2, ...) {
         
         stats::anova(
@@ -272,15 +240,14 @@ compare_nested_models <- function(model1, model2, ...) {
         )
 }
 
-
 # Robustness Analyses
 
-fit_optimal_choice_quadratic <- function(data) {
+fit_payoff_maximizing_choice_quadratic <- function(data) {
         
         data <- add_trial_quadratic(data)
         
         lme4::glmer(
-                optimal_choice ~
+                payoff_maximizing_choice ~
                         trial_c +
                         trial_c2 +
                         payoff_group +
@@ -301,10 +268,9 @@ fit_reward_quadratic <- function(data) {
         )
 }
 
-
 fit_log_rt_quadratic <- function(data) {
         
-        data <- add_trial_quadratic(add_log_rt(data))
+        data <- add_trial_quadratic(data)
         
         lme4::lmer(
                 log_rt ~ trial_c + trial_c2 +
@@ -314,7 +280,6 @@ fit_log_rt_quadratic <- function(data) {
                 REML = FALSE
         )
 }
-
 
 fit_choice_switch_quadratic <- function(data) {
         
@@ -327,7 +292,6 @@ fit_choice_switch_quadratic <- function(data) {
         )
 }
 
-
 # Model Reporting
 
 model_r2 <- function(model) {
@@ -335,15 +299,23 @@ model_r2 <- function(model) {
         performance::r2_nakagawa(model)
 }
 
-
 model_confidence_intervals <- function(model) {
         
         confint(
                 model,
-                method = "profile"
+                method = "Wald"
         )
 }
 
+model_odds_ratios <- function(model) {
+        
+        broom.mixed::tidy(
+                model,
+                effects = "fixed",
+                conf.int = TRUE,
+                exponentiate = TRUE
+        )
+}
 
 model_summary <- function(model) {
         

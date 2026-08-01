@@ -162,6 +162,15 @@ plot_scatter <- function(data,
                 ggplot2::theme_minimal()
 }
 
+plot_log_rt_distribution <- function(data) {
+        
+        plot_histogram(
+                data = data,
+                variable = "log_rt",
+                x_label = "Log Reaction Time"
+        )
+}
+
 # Participant-Level Figures
 
 plot_payoff_groups <- function(data) {
@@ -233,6 +242,39 @@ plot_choice_distribution <- function(data) {
                 ggplot2::theme_minimal()
 }
 
+plot_switch_distribution <- function(data) {
+        
+        data |>
+                dplyr::filter(
+                        !is.na(choice_switch)
+                ) |>
+                dplyr::mutate(
+                        choice_switch = factor(
+                                choice_switch,
+                                levels = c(0, 1),
+                                labels = c(
+                                        "No switch",
+                                        "Switch"
+                                )
+                        )
+                ) |>
+                dplyr::count(
+                        choice_switch
+                ) |>
+                ggplot2::ggplot(
+                        ggplot2::aes(
+                                x = choice_switch,
+                                y = n
+                        )
+                ) +
+                ggplot2::geom_col() +
+                ggplot2::labs(
+                        x = "Choice switching",
+                        y = "Number of trials"
+                ) +
+                ggplot2::theme_minimal()
+}
+
 # Boxplots
 
 plot_reward_boxplot <- function(data) {
@@ -276,8 +318,7 @@ plot_rt_learning_curve <- function(data) {
 plot_learning_curve_by_group <- function(data,
                                          variable,
                                          group,
-                                         y_label,
-                                         summary_fun = mean) {
+                                         y_label) {
         
         summary_data <-
                 data |>
@@ -286,7 +327,11 @@ plot_learning_curve_by_group <- function(data,
                         trial
                 ) |>
                 dplyr::summarise(
-                        value = summary_fun(.data[[variable]], na.rm = TRUE),
+                        n = dplyr::n(),
+                        mean = mean(.data[[variable]], na.rm = TRUE),
+                        sd = stats::sd(.data[[variable]], na.rm = TRUE),
+                        se = sd / sqrt(n),
+                        ci = stats::qt(0.975, df = n - 1) * se,
                         .groups = "drop"
                 )
         
@@ -294,19 +339,27 @@ plot_learning_curve_by_group <- function(data,
                 summary_data,
                 ggplot2::aes(
                         x = trial,
-                        y = value,
-                        colour = factor(.data[[group]])
+                        y = mean,
+                        colour = factor(.data[[group]]),
+                        fill = factor(.data[[group]])
                 )
         ) +
-                ggplot2::geom_line() +
-                ggplot2::geom_smooth(
-                        method = "loess",
-                        se = FALSE
+                ggplot2::geom_ribbon(
+                        ggplot2::aes(
+                                ymin = mean - ci,
+                                ymax = mean + ci
+                        ),
+                        alpha = 0.20,
+                        colour = NA
+                ) +
+                ggplot2::geom_line(
+                        linewidth = 0.8
                 ) +
                 ggplot2::labs(
                         x = "Trial",
                         y = y_label,
-                        colour = group
+                        colour = "Payoff Group",
+                        fill = "Payoff Group"
                 ) +
                 ggplot2::theme_minimal()
 }
@@ -541,7 +594,6 @@ plot_odds_ratios <- function(model) {
                 ) +
                 ggplot2::theme_minimal()
 }
-
 
 # Marginal Predictions
 
@@ -782,4 +834,48 @@ plot_model_comparison <- function(comparison_table) {
 plot_model_performance <- function(model) {
         
         performance::check_model(model)
+}
+
+# Descriptive Results
+
+descriptive_statistics_table <- function(data) {
+        
+        tibble::tibble(
+                
+                participants =
+                        dplyr::n_distinct(data$id),
+                
+                trials =
+                        nrow(data),
+                
+                missing_reward =
+                        sum(is.na(data$reward)),
+                
+                missing_log_rt =
+                        sum(is.na(data$log_rt)),
+                
+                missing_payoff_maximizing_choice =
+                        sum(is.na(data$payoff_maximizing_choice)),
+                
+                missing_choice_switch =
+                        sum(is.na(data$choice_switch)),
+                
+                mean_reward =
+                        mean(data$reward, na.rm = TRUE),
+                
+                sd_reward =
+                        stats::sd(data$reward, na.rm = TRUE),
+                
+                mean_log_rt =
+                        mean(data$log_rt, na.rm = TRUE),
+                
+                sd_log_rt =
+                        stats::sd(data$log_rt, na.rm = TRUE),
+                
+                payoff_maximizing_choice_rate =
+                        mean(data$payoff_maximizing_choice, na.rm = TRUE),
+                
+                choice_switch_rate =
+                        mean(data$choice_switch, na.rm = TRUE)
+        )
 }
