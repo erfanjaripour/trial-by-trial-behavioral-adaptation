@@ -28,7 +28,7 @@ This project investigates trial-by-trial reinforcement learning performance usin
 
 7\. Frequentist mixed-effects analysis
 
-8\. Bayesian multilevel replication
+8\. Bayesian multilevel robustness analysis
 
 9\. Model diagnostics and validation
 
@@ -85,4 +85,40 @@ A payoff-maximizing choice is defined as selecting an option whose reward value 
 
 
 Secondary analyses examine obtained reward, reaction time, and exploratory behavioural measures using appropriate mixed-effects models. Bayesian multilevel analyses replicate the primary analysis to evaluate the robustness of the findings.
+
+
+
+\## Primary Model Specification
+
+
+
+The primary analysis uses a generalized linear mixed-effects model:
+
+
+
+payoff\\\_maximizing\\\_choice \\sim trial\_c \* payoff\\\_group + (1 + trial\_c || id)
+
+
+
+The model estimates how the probability of selecting the currently highest-payoff option changes across trials and payoff environments.
+
+
+
+Model components:
+
+
+
+\- Fixed effects estimate population-level changes in payoff-maximizing choice over experience and differences between payoff groups.
+
+\- Random intercepts capture individual differences in baseline choice tendencies.
+
+\- Random slopes capture individual differences in adaptation across trials.
+
+
+
+The random-slope structure was selected because participants may differ not only in their baseline tendency to choose high-payoff options but also in how their behaviour changes with experience. The uncorrelated random-effects specification was retained because it provided participant-level trajectory variation while avoiding unnecessary estimation of the intercept-slope correlation.
+
+
+
+A quadratic trial model was evaluated as a robustness analysis to assess potential nonlinear changes across experience. The primary linear trajectory model was retained for confirmatory interpretation because it provides a more interpretable estimate of behavioural change over trials.
 
