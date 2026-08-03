@@ -22,11 +22,18 @@ source("../R/models.R")
 source("../R/visualization.R")
 
 processed_data <- readr::read_csv(
-        "../data/processed/processed_data.csv"
+        "../data/processed/processed-data.csv"
 )
 ```
 
 # Primary Outcome: Payoff Maximizing Choice
+
+## Ensure appropriate factor coding
+
+```{r}
+processed_data <- processed_data |>
+        convert_payoff_group()
+```
 
 ## Model Fitting
 
