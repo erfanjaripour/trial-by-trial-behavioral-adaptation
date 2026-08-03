@@ -1195,13 +1195,9 @@ figure_dpi <- 300
 figure_payoff_maximizing_choice <-
         plot_predictions_by_group(
                 final_payoff_maximizing_choice_model,
-                terms = c(
-                        "trial_c [seq(-75,75,by=5)]",
-                        "payoff_group"
-                ),
+                trial_values = seq(-75, 75, by = 5),
                 y_label = "Predicted probability of payoff maximizing choice"
         )
-
 
 figure_payoff_maximizing_choice
 ```
@@ -1238,10 +1234,7 @@ ggplot2::ggsave(
 figure_reward_trajectory <-
         plot_predictions_by_group(
                 final_reward_model,
-                terms = c(
-                        "trial_c [seq(-75,75,by=5)]",
-                        "payoff_group"
-                ),
+                trial_values = seq(-75, 75, by = 5),
                 y_label = "Predicted reward"
         )
 
@@ -1282,10 +1275,7 @@ ggplot2::ggsave(
 figure_reaction_time_trajectory <-
         plot_predictions_by_group(
                 final_log_rt_model,
-                terms = c(
-                        "trial_c [seq(-75,75,by=5)]",
-                        "payoff_group"
-                ),
+                trial_values = seq(-75, 75, by = 5),
                 y_label = "Predicted log reaction time"
         )
 
@@ -1322,14 +1312,10 @@ ggplot2::ggsave(
 # Figure 4: Predicted choice-switch probability
 
 ```{r}
-
 figure_choice_switch_probability <-
         plot_predictions_by_group(
                 final_choice_switch_model,
-                terms = c(
-                        "trial_c [seq(-75,75,by=5)]",
-                        "payoff_group"
-                ),
+                trial_values = seq(-75, 75, by = 5),
                 y_label = "Predicted probability of switching"
         )
 

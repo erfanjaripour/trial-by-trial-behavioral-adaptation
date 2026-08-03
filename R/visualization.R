@@ -566,7 +566,6 @@ plot_fixed_effects <- function(model) {
                 ggplot2::theme_minimal()
 }
 
-
 plot_odds_ratios <- function(model) {
         
         broom.mixed::tidy(
@@ -595,70 +594,69 @@ plot_odds_ratios <- function(model) {
                 ggplot2::theme_minimal()
 }
 
-# Marginal Predictions
-
-plot_marginal_effects <- function(model,
-                                  terms,
-                                  y_label = "Predicted value") {
-        
-        predictions <-
-                ggeffects::ggpredict(
-                        model,
-                        terms = terms
-                )
-        
-        ggplot2::ggplot(
-                predictions,
-                ggplot2::aes(
-                        x = x,
-                        y = predicted,
-                        ymin = conf.low,
-                        ymax = conf.high
-                )
-        ) +
-                ggplot2::geom_ribbon(
-                        alpha = 0.2
-                ) +
-                ggplot2::geom_line() +
-                ggplot2::labs(
-                        x = terms[1],
-                        y = y_label
-                ) +
-                ggplot2::theme_minimal()
-}
-
+# Marginal Predictions using emmeans
 
 plot_predictions_by_group <- function(model,
-                                      terms,
-                                      y_label = "Predicted value") {
+                                      trial_values = seq(-75, 75, by = 5),
+                                      y_label = "Predicted value",
+                                      response = FALSE) {
         
-        predictions <-
-                ggeffects::ggpredict(
-                        model,
-                        terms = terms,
-                        bias_correction = TRUE
-                )
+        predictions <- emmeans::emmeans(
+                model,
+                ~ payoff_group * trial_c,
+                at = list(
+                        trial_c = trial_values
+                ),
+                type = ifelse(response, "response", "link")
+        ) |>
+                as.data.frame()
+        
+        if (response) {
+                predictions <- predictions |>
+                        dplyr::rename(
+                                predicted = prob,
+                                conf.low = asymp.LCL,
+                                conf.high = asymp.UCL,
+                                x = trial_c,
+                                group = payoff_group
+                        )
+        } else {
+                predictions <- predictions |>
+                        dplyr::rename(
+                                predicted = emmean,
+                                conf.low = lower.CL,
+                                conf.high = upper.CL,
+                                x = trial_c,
+                                group = payoff_group
+                        )
+        }
         
         ggplot2::ggplot(
                 predictions,
                 ggplot2::aes(
                         x = x,
                         y = predicted,
+                        group = group,
                         colour = group,
                         fill = group
                 )
         ) +
-                ggplot2::geom_line(linewidth = 1) +
                 ggplot2::geom_ribbon(
                         ggplot2::aes(
                                 ymin = conf.low,
                                 ymax = conf.high
                         ),
-                        alpha = 0.2,
+                        alpha = 0.20,
                         colour = NA
                 ) +
+                ggplot2::geom_line(
+                        linewidth = 1
+                ) +
+                ggplot2::scale_x_continuous(
+                        breaks = seq(-80, 80, by = 20)
+                ) +
                 ggplot2::labs(
-                        x = terms[1],
+                        x = "Centered trial",
                         y = y_label,
                         colour = "Payoff Group",
                         fill = "Payoff Group"
@@ -666,6 +664,91 @@ plot_predictions_by_group <- function(model,
                 ggplot2::theme_minimal()
 }
 
+# Predictions by Group using emmeans
+
+plot_predictions_by_group <- function(model,
+                                      trial_values = seq(-75, 75, by = 5),
+                                      y_label = "Predicted value") {
+        
+        predictions <-
+                emmeans::emmeans(
+                        model,
+                        ~ payoff_group * trial_c,
+                        at = list(
+                                trial_c = trial_values
+                        )
+                ) |>
+                as.data.frame()
+        
+        # Rename confidence intervals consistently
+        if ("asymp.LCL" %in% names(predictions)) {
+                
+                predictions <- predictions |>
+                        dplyr::rename(
+                                conf.low = asymp.LCL,
+                                conf.high = asymp.UCL
+                        )
+                
+        } else {
+                
+                predictions <- predictions |>
+                        dplyr::rename(
+                                conf.low = lower.CL,
+                                conf.high = upper.CL
+                        )
+        }
+        
+        # Rename outcome column
+        if ("prob" %in% names(predictions)) {
+                
+                predictions <- predictions |>
+                        dplyr::rename(
+                                predicted = prob
+                        )
+                
+        }
+        
+        if ("emmean" %in% names(predictions)) {
+                
+                predictions <- predictions |>
+                        dplyr::rename(
+                                predicted = emmean
+                        )
+        }
+        
+        
+        ggplot2::ggplot(
+                predictions,
+                ggplot2::aes(
+                        x = trial_c,
+                        y = predicted,
+                        group = payoff_group,
+                        colour = payoff_group,
+                        fill = payoff_group
+                )
+        ) +
+                ggplot2::geom_ribbon(
+                        ggplot2::aes(
+                                ymin = conf.low,
+                                ymax = conf.high
+                        ),
+                        alpha = 0.20,
+                        colour = NA
+                ) +
+                ggplot2::geom_line(
+                        linewidth = 1
+                ) +
+                ggplot2::scale_x_continuous(
+                        breaks = seq(-80, 80, by = 20)
+                ) +
+                ggplot2::labs(
+                        x = "Centered trial",
+                        y = y_label,
+                        colour = "Payoff Group",
+                        fill = "Payoff Group"
+                ) +
+                ggplot2::theme_minimal()
+}
 
 # Random Effects
 
@@ -695,7 +778,6 @@ plot_random_intercepts <- function(model) {
                 ggplot2::theme_minimal()
 }
 
-
 plot_random_slopes <- function(model) {
         
         random_effects <-
@@ -721,7 +803,6 @@ plot_random_slopes <- function(model) {
                 ) +
                 ggplot2::theme_minimal()
 }
-
 
 # Linear Mixed Model Residual Visualization
 
@@ -751,7 +832,6 @@ plot_lmm_residuals <- function(model) {
                 ) +
                 ggplot2::theme_minimal()
 }
-
 
 plot_lmm_qq <- function(model) {
         
@@ -785,7 +865,6 @@ plot_lmm_qq <- function(model) {
                 ggplot2::theme_minimal()
 }
 
-
 # Logistic Mixed Model Diagnostics Visualization
 
 plot_glmm_diagnostics <- function(model) {
@@ -798,7 +877,6 @@ plot_glmm_diagnostics <- function(model) {
         plot(simulation)
 }
 
-
 # Model Comparison
 
 add_delta_aic <- function(comparison_table) {
@@ -808,7 +886,6 @@ add_delta_aic <- function(comparison_table) {
                         delta_AIC = AIC - min(AIC)
                 )
 }
-
 
 plot_model_comparison <- function(comparison_table) {
         
@@ -827,7 +904,6 @@ plot_model_comparison <- function(comparison_table) {
                 ) +
                 ggplot2::theme_minimal()
 }
-
 
 # Model Performance Summary
 
