@@ -14,27 +14,16 @@ This project investigates trial-by-trial reinforcement learning performance usin
 
 
 
-1\. Data acquisition
-
-2\. Data inspection
-
-3\. Data integrity validation
-
-4\. Data preprocessing
-
-5\. Variable engineering
-
-6\. Exploratory data analysis
-
-7\. Frequentist mixed-effects analysis
-
-8\. Bayesian multilevel robustness analysis
-
-9\. Model diagnostics and validation
-
-10\. Robustness analyses
-
-11\. Visualisation and interpretation
+1. Data acquisition
+2. Data inspection
+3. Data integrity validation
+4. Data preprocessing
+5. Variable engineering
+6. Exploratory data analysis
+7. Frequentist mixed-effects analysis
+8. Model diagnostics and validation
+9. Robustness analyses
+10. Visualisation and interpretation
 
 
 
@@ -84,7 +73,11 @@ A payoff-maximizing choice is defined as selecting an option whose reward value 
 
 
 
-Secondary analyses examine obtained reward, reaction time, and exploratory behavioural measures using appropriate mixed-effects models. Bayesian multilevel analyses replicate the primary analysis to evaluate the robustness of the findings.
+Secondary analyses examine obtained reward, reaction time, and exploratory behavioural measures using appropriate mixed-effects models.
+
+
+
+Bayesian multilevel models were considered as an additional robustness analysis but were not included in the final workflow due to computational constraints.
 
 
 

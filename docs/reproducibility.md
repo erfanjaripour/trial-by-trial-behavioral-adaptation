@@ -10,7 +10,7 @@ This document describes the computational workflow required to reproduce the ana
 
 
 
-The project investigates trial-by-trial behavioural adaptation in a four-arm restless bandit task using frequentist mixed-effects models as the primary analysis and Bayesian multilevel models as secondary methodological support.
+The project investigates trial-by-trial behavioural adaptation in a four-arm restless bandit task using frequentist mixed-effects models as the primary analysis.
 
 
 
@@ -118,8 +118,7 @@ The complete analysis workflow is:
 4. Exploratory data analysis (notebooks/02-exploratory-analysis.qmd)
 5. Frequentist mixed-effects models (notebooks/03-modeling.qmd)
 6. Model diagnostics and robustness analyses
-7. Bayesian multilevel robustness models
-8. Tables and publication figures (results/)
+7. Tables and publication figures (results/)
 
 
 
@@ -157,23 +156,11 @@ It does not represent a latent reinforcement-learning optimum or estimated parti
 
 
 
-\## Secondary Bayesian Analysis
+\## Bayesian Analysis Consideration
 
 
 
-Bayesian multilevel models are used as secondary methodological support.
-
-
-
-The purpose of Bayesian analyses is to evaluate whether posterior estimates are consistent with the conclusions obtained from the primary frequentist models.
-
-
-
-Bayesian models provide full posterior uncertainty estimates and are used to assess the robustness of conclusions under an alternative inferential framework.
-
-
-
-Bayesian models are not treated as separate primary analyses.
+Bayesian multilevel models were considered as an additional robustness analysis but were not included in the final workflow due to computational constraints. The final analyses therefore rely on frequentist mixed-effects models as the primary inferential framework.
 
 
 
