@@ -594,61 +594,7 @@ plot_odds_ratios <- function(model) {
                 ggplot2::theme_minimal()
 }
 
-# Marginal Predictions using emmeans
-
-plot_predictions_by_group <- function(model,
-                                      trial_values = seq(-75, 75, by = 5),
-                                      y_label = "Predicted probability") {
-        
-        predictions <-
-                emmeans::emmeans(
-                        model,
-                        ~ payoff_group * trial_c,
-                        at = list(
-                                trial_c = trial_values
-                        ),
-                        type = "response"
-                ) |>
-                as.data.frame()
-        
-        predictions <- predictions |>
-                dplyr::rename(
-                        predicted = prob,
-                        conf.low = asymp.LCL,
-                        conf.high = asymp.UCL
-                )
-        
-        ggplot2::ggplot(
-                predictions,
-                ggplot2::aes(
-                        x = trial_c,
-                        y = predicted,
-                        colour = payoff_group,
-                        fill = payoff_group,
-                        group = payoff_group
-                )
-        ) +
-                ggplot2::geom_ribbon(
-                        ggplot2::aes(
-                                ymin = conf.low,
-                                ymax = conf.high
-                        ),
-                        alpha = 0.20,
-                        colour = NA
-                ) +
-                ggplot2::geom_line(
-                        linewidth = 1
-                ) +
-                ggplot2::labs(
-                        x = "Centered trial",
-                        y = y_label,
-                        colour = "Payoff Group",
-                        fill = "Payoff Group"
-                ) +
-                ggplot2::theme_minimal()
-}
-
-# Predictions by Group using emmeans
+# Predictions by Group
 
 plot_predictions_by_group <- function(model,
                                       trial_values = seq(-75, 75, by = 5),
@@ -660,7 +606,8 @@ plot_predictions_by_group <- function(model,
                         ~ payoff_group * trial_c,
                         at = list(
                                 trial_c = trial_values
-                        )
+                        ),
+                        type = "response"
                 ) |>
                 as.data.frame()
         

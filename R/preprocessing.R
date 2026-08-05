@@ -131,10 +131,7 @@ convert_payoff_group <- function(data) {
         data |>
                 dplyr::mutate(
                         payoff_group = factor(payoff_group),
-                        payoff_group = relevel(
-                                payoff_group,
-                                ref = "2"
-                        )
+                        payoff_group = stats::relevel(payoff_group, ref = "2")
                 )
 }
 

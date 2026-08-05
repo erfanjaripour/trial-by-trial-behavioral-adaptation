@@ -418,7 +418,7 @@ check_singularity(
 
 ```{r}
 choice_switch_export <-
-        export_model_summary(choice_switch_interaction)
+        export_model_summary(switch_interaction)
 ```
 
 ## Model Comparison
