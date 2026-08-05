@@ -93,6 +93,10 @@ payoff\\\_maximizing\\\_choice \\sim trial\_c \* payoff\\\_group + (1 + trial\_c
 
 
 
+Payoff group was modeled as a categorical predictor with payoff group 2 specified as the reference category. Therefore, fixed-effect estimates for payoff groups 3 and 4 represent differences relative to payoff group 2. This reference level was selected because payoff group 2 represents the baseline payoff environment in the dataset.
+
+
+
 The model estimates how the probability of selecting the currently highest-payoff option changes across trials and payoff environments.
 
 
@@ -101,7 +105,7 @@ Model components:
 
 
 
-\- Fixed effects estimate population-level changes in payoff-maximizing choice over experience and differences between payoff groups.
+\- Fixed effects estimate population-level changes in payoff-maximizing choice over experience, the differences between payoff groups relative to the reference category (payoff group 2), and trial-by-payoff-group interactions.
 
 \- Random intercepts capture individual differences in baseline choice tendencies.
 

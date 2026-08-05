@@ -598,47 +598,34 @@ plot_odds_ratios <- function(model) {
 
 plot_predictions_by_group <- function(model,
                                       trial_values = seq(-75, 75, by = 5),
-                                      y_label = "Predicted value",
-                                      response = FALSE) {
+                                      y_label = "Predicted probability") {
         
-        predictions <- emmeans::emmeans(
-                model,
-                ~ payoff_group * trial_c,
-                at = list(
-                        trial_c = trial_values
-                ),
-                type = ifelse(response, "response", "link")
-        ) |>
+        predictions <-
+                emmeans::emmeans(
+                        model,
+                        ~ payoff_group * trial_c,
+                        at = list(
+                                trial_c = trial_values
+                        ),
+                        type = "response"
+                ) |>
                 as.data.frame()
         
-        if (response) {
-                predictions <- predictions |>
-                        dplyr::rename(
-                                predicted = prob,
-                                conf.low = asymp.LCL,
-                                conf.high = asymp.UCL,
-                                x = trial_c,
-                                group = payoff_group
-                        )
-        } else {
-                predictions <- predictions |>
-                        dplyr::rename(
-                                predicted = emmean,
-                                conf.low = lower.CL,
-                                conf.high = upper.CL,
-                                x = trial_c,
-                                group = payoff_group
-                        )
-        }
+        predictions <- predictions |>
+                dplyr::rename(
+                        predicted = prob,
+                        conf.low = asymp.LCL,
+                        conf.high = asymp.UCL
+                )
         
         ggplot2::ggplot(
                 predictions,
                 ggplot2::aes(
-                        x = x,
+                        x = trial_c,
                         y = predicted,
-                        group = group,
-                        colour = group,
-                        fill = group
+                        colour = payoff_group,
+                        fill = payoff_group,
+                        group = payoff_group
                 )
         ) +
                 ggplot2::geom_ribbon(
@@ -651,9 +638,6 @@ plot_predictions_by_group <- function(model,
                 ) +
                 ggplot2::geom_line(
                         linewidth = 1
-                ) +
-                ggplot2::scale_x_continuous(
-                        breaks = seq(-80, 80, by = 20)
                 ) +
                 ggplot2::labs(
                         x = "Centered trial",

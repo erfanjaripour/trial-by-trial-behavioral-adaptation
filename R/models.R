@@ -19,13 +19,85 @@ add_trial_quadratic <- function(data) {
                 )
 }
 
+# Model Formulas
+
+payoff_maximizing_null_formula <-
+        payoff_maximizing_choice ~ 1 +
+        (1 | id)
+
+payoff_maximizing_fixed_formula <-
+        payoff_maximizing_choice ~ trial_c + payoff_group +
+        (1 | id)
+
+payoff_maximizing_random_slope_uncorrelated_formula <-
+        payoff_maximizing_choice ~ trial_c + payoff_group +
+        (1 + trial_c || id)
+
+payoff_maximizing_random_slope_correlated_formula <-
+        payoff_maximizing_choice ~ trial_c + payoff_group +
+        (1 + trial_c | id)
+
+payoff_maximizing_interaction_formula <-
+        payoff_maximizing_choice ~ trial_c * payoff_group +
+        (1 + trial_c || id)
+
+
+reward_null_formula <-
+        reward ~ 1 +
+        (1 | id)
+
+reward_fixed_formula <-
+        reward ~ trial_c + payoff_group +
+        (1 | id)
+
+reward_random_slope_formula <-
+        reward ~ trial_c + payoff_group +
+        (1 + trial_c || id)
+
+reward_interaction_formula <-
+        reward ~ trial_c * payoff_group +
+        (1 + trial_c || id)
+
+
+log_rt_null_formula <-
+        log_rt ~ 1 +
+        (1 | id)
+
+log_rt_fixed_formula <-
+        log_rt ~ trial_c + payoff_group +
+        (1 | id)
+
+log_rt_random_slope_formula <-
+        log_rt ~ trial_c + payoff_group +
+        (1 + trial_c || id)
+
+log_rt_interaction_formula <-
+        log_rt ~ trial_c * payoff_group +
+        (1 | id)
+
+
+choice_switch_null_formula <-
+        choice_switch ~ 1 +
+        (1 | id)
+
+choice_switch_fixed_formula <-
+        choice_switch ~ trial_c + payoff_group +
+        (1 | id)
+
+choice_switch_random_slope_formula <-
+        choice_switch ~ trial_c + payoff_group +
+        (1 + trial_c || id)
+
+choice_switch_interaction_formula <-
+        choice_switch ~ trial_c * payoff_group +
+        (1 + trial_c || id)
+
 # Primary Outcome: Payoff Maximizing Choice
 
 fit_payoff_maximizing_choice_null <- function(data) {
         
         lme4::glmer(
-                payoff_maximizing_choice ~ 1 +
-                        (1 | id),
+                formula = payoff_maximizing_null_formula,
                 data = center_trial(data),
                 family = binomial(link = "logit")
         )
@@ -34,8 +106,7 @@ fit_payoff_maximizing_choice_null <- function(data) {
 fit_payoff_maximizing_choice_fixed <- function(data) {
         
         lme4::glmer(
-                payoff_maximizing_choice ~ trial_c + payoff_group +
-                        (1 | id),
+                formula = payoff_maximizing_fixed_formula,
                 data = center_trial(data),
                 family = binomial(link = "logit")
         )
@@ -44,22 +115,19 @@ fit_payoff_maximizing_choice_fixed <- function(data) {
 fit_payoff_maximizing_choice_random_slope_uncorrelated <- function(data){
         
         glmer(
-                payoff_maximizing_choice ~ trial_c + payoff_group +
-                        (1 + trial_c || id),
-                data=center_trial(data),
-                family=binomial
+                formula = payoff_maximizing_random_slope_uncorrelated_formula,
+                data = center_trial(data),
+                family = binomial(link = "logit")
         )
         
 }
 
-
 fit_payoff_maximizing_choice_random_slope_correlated <- function(data){
         
         glmer(
-                payoff_maximizing_choice ~ trial_c + payoff_group +
-                        (1 + trial_c | id),
-                data=center_trial(data),
-                family=binomial
+                formula = payoff_maximizing_random_slope_correlated_formula,
+                data = center_trial(data),
+                family = binomial(link = "logit")
         )
         
 }
@@ -67,8 +135,7 @@ fit_payoff_maximizing_choice_random_slope_correlated <- function(data){
 fit_payoff_maximizing_choice_interaction <- function(data) {
         
         lme4::glmer(
-                payoff_maximizing_choice ~ trial_c * payoff_group +
-                        (1 + trial_c || id),
+                formula = payoff_maximizing_interaction_formula,
                 data = center_trial(data),
                 family = binomial(link = "logit")
         )
@@ -79,8 +146,7 @@ fit_payoff_maximizing_choice_interaction <- function(data) {
 fit_reward_null <- function(data) {
         
         lme4::lmer(
-                reward ~ 1 +
-                        (1 | id),
+                formula = reward_null_formula,
                 data = center_trial(data),
                 REML = FALSE
         )
@@ -89,8 +155,7 @@ fit_reward_null <- function(data) {
 fit_reward_fixed <- function(data) {
         
         lme4::lmer(
-                reward ~ trial_c + payoff_group +
-                        (1 | id),
+                formula = reward_fixed_formula,
                 data = center_trial(data),
                 REML = FALSE
         )
@@ -99,18 +164,7 @@ fit_reward_fixed <- function(data) {
 fit_reward_random_slope <- function(data) {
         
         lme4::lmer(
-                reward ~ trial_c + payoff_group +
-                        (1 + trial_c || id),
-                data = center_trial(data),
-                REML = FALSE
-        )
-}
-
-fit_reward_random_slope <- function(data) {
-        
-        lme4::lmer(
-                reward ~ trial_c + payoff_group +
-                        (1 + trial_c | id),
+                formula = reward_random_slope_formula,
                 data = center_trial(data),
                 REML = FALSE
         )
@@ -119,8 +173,7 @@ fit_reward_random_slope <- function(data) {
 fit_reward_interaction <- function(data) {
         
         lme4::lmer(
-                reward ~ trial_c * payoff_group +
-                        (1 + trial_c || id),
+                formula = reward_interaction_formula,
                 data = center_trial(data),
                 REML = FALSE
         )
@@ -131,8 +184,7 @@ fit_reward_interaction <- function(data) {
 fit_log_rt_null <- function(data) {
         
         lme4::lmer(
-                log_rt ~ 1 +
-                        (1 | id),
+                formula = log_rt_null_formula,
                 data = center_trial(data),
                 REML = FALSE
         )
@@ -141,8 +193,7 @@ fit_log_rt_null <- function(data) {
 fit_log_rt_fixed <- function(data) {
         
         lme4::lmer(
-                log_rt ~ trial_c + payoff_group +
-                        (1 | id),
+                formula = log_rt_fixed_formula,
                 data = center_trial(data),
                 REML = FALSE
         )
@@ -151,8 +202,7 @@ fit_log_rt_fixed <- function(data) {
 fit_log_rt_random_slope <- function(data) {
         
         lme4::lmer(
-                log_rt ~ trial_c + payoff_group +
-                        (1 + trial_c || id),
+                formula = log_rt_random_slope_formula,
                 data = center_trial(data),
                 REML = FALSE
         )
@@ -161,8 +211,7 @@ fit_log_rt_random_slope <- function(data) {
 fit_log_rt_interaction <- function(data) {
         
         lme4::lmer(
-                log_rt ~ trial_c * payoff_group +
-                        (1 | id),
+                formula = log_rt_interaction_formula,
                 data = center_trial(data),
                 REML = FALSE
         )
@@ -173,8 +222,7 @@ fit_log_rt_interaction <- function(data) {
 fit_choice_switch_null <- function(data) {
         
         lme4::glmer(
-                choice_switch ~ 1 +
-                        (1 | id),
+                formula = choice_switch_null_formula,
                 data = center_trial(data),
                 family = binomial(link = "logit")
         )
@@ -183,8 +231,7 @@ fit_choice_switch_null <- function(data) {
 fit_choice_switch_fixed <- function(data) {
         
         lme4::glmer(
-                choice_switch ~ trial_c + payoff_group +
-                        (1 | id),
+                formula = choice_switch_fixed_formula,
                 data = center_trial(data),
                 family = binomial(link = "logit")
         )
@@ -193,8 +240,7 @@ fit_choice_switch_fixed <- function(data) {
 fit_choice_switch_random_slope <- function(data) {
         
         lme4::glmer(
-                choice_switch ~ trial_c + payoff_group +
-                        (1 + trial_c || id),
+                formula = choice_switch_random_slope_formula,
                 data = center_trial(data),
                 family = binomial(link = "logit")
         )
@@ -203,8 +249,7 @@ fit_choice_switch_random_slope <- function(data) {
 fit_choice_switch_interaction <- function(data) {
         
         lme4::glmer(
-                choice_switch ~ trial_c * payoff_group +
-                        (1 + trial_c || id),
+                formula = choice_switch_interaction_formula,
                 data = center_trial(data),
                 family = binomial(link = "logit")
         )
@@ -236,7 +281,7 @@ compare_nested_models <- function(model1, model2, ...) {
         stats::anova(
                 model1,
                 model2,
-                ...
+                test = "Chisq"
         )
 }
 
@@ -323,5 +368,20 @@ model_summary <- function(model) {
                 observations = stats::nobs(model),
                 participants = nrow(lme4::ranef(model)$id),
                 singular = lme4::isSingular(model)
+        )
+}
+
+export_model_summary <- function(model) {
+        
+        list(
+                formula = formula(model),
+                
+                fixed_effects = broom.mixed::tidy(model, effects = "fixed"),
+                
+                random_effects = lme4::VarCorr(model),
+                
+                observations = stats::nobs(model),
+                
+                participants = length(lme4::ranef(model)$id)
         )
 }

@@ -130,7 +130,11 @@ convert_payoff_group <- function(data) {
         
         data |>
                 dplyr::mutate(
-                        payoff_group = factor(payoff_group)
+                        payoff_group = factor(payoff_group),
+                        payoff_group = relevel(
+                                payoff_group,
+                                ref = "2"
+                        )
                 )
 }
 
@@ -326,7 +330,7 @@ verify_dataset <- function(data) {
                         all(stats::na.omit(data$choice) %in% 1:4),
                 
                 valid_payoff_group =
-                        all(data$payoff_group %in% c(2, 3, 4)),
+                        all(as.character(data$payoff_group) %in% c("2", "3", "4")),
                 
                 valid_payoff_maximizing_choice =
                         all(stats::na.omit(data$payoff_maximizing_choice) %in% c(TRUE, FALSE)),

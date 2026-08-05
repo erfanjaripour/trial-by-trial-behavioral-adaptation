@@ -52,7 +52,7 @@ The dataset contains one row per trial per participant.
 
 | rt             |          numeric | Choice reaction time in milliseconds.                                                     |
 
-| payoff\_group   | integer / factor | Reward schedule group assigned to the participant.                                        |
+| payoff\_group   | integer / factor | Reward schedule group assigned to the participant. Converted to a categorical factor for analysis, with payoff group 2 specified as the reference category.                                        |
 
 | reward\_c1      |          numeric | Reward value for option 1 under the predefined reward schedule.                           |
 
@@ -62,7 +62,7 @@ The dataset contains one row per trial per participant.
 
 | reward\_c4      |          numeric | Reward value for option 4 under the predefined reward schedule.                           |
 
-| trial          |          integer | Sequential trial number within each participant in the analysis-ready dataset.                                                         |
+| trial          |          integer | Sequential trial number within each participant in the analysis-ready dataset.                                                         
 
 | payoff\_maximizing\_choice |          integer | Binary indicator of whether the participant selected an option with the highest reward value according to the predefined trial-specific reward schedule. When multiple options shared the maximum reward value, selecting any of those options was coded as payoff-maximizing.                                       |
 
@@ -74,19 +74,14 @@ The dataset contains one row per trial per participant.
 
 
 
-\* The dataset is anonymised and contains no direct participant identifiers.
-
-\* choice records the participant’s actual decision.
-
-\* reward records the obtained outcome after the decision.
-
-\* reward\_c1 to reward\_c4 represent the per-trial reward values provided in the dataset. These variables may permit reconstruction of the task's reward schedule or derivation of an payoff-maximizing choice, subject to verification against the original dataset documentation.
-
-\* Raw data are stored unchanged in data/raw/.
-
-\* Trials without recorded responses (missing choice and reward) are excluded during preprocessing because behavioural outcomes cannot be calculated.
-
-\* Trials with missing reaction time (rt) values are retained in the processed dataset because they remain valid for choice-based analyses. These observations are excluded only from reaction-time-specific analyses.
+* The dataset is anonymised and contains no direct participant identifiers.
+* choice records the participant’s actual decision.
+* reward records the obtained outcome after the decision.
+* reward\_c1 to reward\_c4 represent the per-trial reward values provided in the dataset. These variables may permit reconstruction of the task's reward schedule or derivation of an payoff-maximizing choice, subject to verification against the original dataset documentation.
+* payoff\_group was converted from an integer variable to a categorical factor during preprocessing. The reference category was fixed as payoff group 2 to ensure consistent interpretation of model coefficients across analyses.
+* Raw data are stored unchanged in data/raw/.
+* Trials without recorded responses (missing choice and reward) are excluded during preprocessing because behavioural outcomes cannot be calculated.
+* Trials with missing reaction time (rt) values are retained in the processed dataset because they remain valid for choice-based analyses. These observations are excluded only from reaction-time-specific analyses.
 
 
 

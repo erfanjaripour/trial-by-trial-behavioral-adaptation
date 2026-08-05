@@ -80,6 +80,13 @@ check_singularity(
 )
 ```
 
+## Model Export Validation
+
+```{r}
+payoff_maximizing_export <-
+        export_model_summary(payoff_maximizing_interaction)
+```
+
 ## Model Comparison
 
 ```{r}
@@ -98,19 +105,16 @@ payoff_maximizing_comparison
 compare_nested_models(
         payoff_maximizing_null,
         payoff_maximizing_fixed,
-        test = "Chisq"
 )
 
 compare_nested_models(
         payoff_maximizing_fixed,
         payoff_maximizing_random_slope,
-        test = "Chisq"
 )
 
 compare_nested_models(
         payoff_maximizing_random_slope,
         payoff_maximizing_interaction,
-        test = "Chisq"
 )
 ```
 
@@ -134,8 +138,7 @@ DHARMa::testDispersion(
 ```{r}
 plot_predictions_by_group(
         payoff_maximizing_interaction,
-        terms = c("trial_c", "payoff_group"),
-        y_label = "Predicted probability of payoff_maximizing choice"
+        y_label = "Predicted probability of payoff-maximizing choice"
 )
 
 
@@ -196,6 +199,14 @@ check_singularity(
 )
 ```
 
+
+## Model Export Validation
+
+```{r}
+reward_export <-
+        export_model_summary(reward_interaction)
+```
+
 ## Model Comparison
 
 ```{r}
@@ -245,7 +256,6 @@ plot_lmm_qq(
 ```{r}
 plot_predictions_by_group(
         reward_interaction,
-        terms = c("trial_c", "payoff_group"),
         y_label = "Predicted reward"
 )
 ```
@@ -297,6 +307,13 @@ check_singularity(
 )
 ```
 
+## Model Export Validation
+
+```{r}
+log_rt_export <-
+        export_model_summary(log_rt_interaction)
+```
+
 ## Model Comparison
 
 ```{r}
@@ -346,7 +363,6 @@ plot_lmm_qq(
 ```{r}
 plot_predictions_by_group(
         log_rt_interaction,
-        terms = c("trial_c", "payoff_group"),
         y_label = "Predicted log reaction time"
 )
 ```
@@ -398,6 +414,13 @@ check_singularity(
 )
 ```
 
+## Model Export Validation
+
+```{r}
+choice_switch_export <-
+        export_model_summary(choice_switch_interaction)
+```
+
 ## Model Comparison
 
 ```{r}
@@ -416,19 +439,16 @@ switch_comparison
 compare_nested_models(
         switch_null,
         switch_fixed,
-        test = "Chisq"
 )
 
 compare_nested_models(
         switch_fixed,
         switch_random_slope,
-        test = "Chisq"
 )
 
 compare_nested_models(
         switch_random_slope,
         switch_interaction,
-        test = "Chisq"
 )
 ```
 
@@ -452,7 +472,6 @@ DHARMa::testDispersion(
 ```{r}
 plot_predictions_by_group(
         switch_interaction,
-        terms = c("trial_c", "payoff_group"),
         y_label = "Predicted probability of switching"
 )
 ```
@@ -618,7 +637,6 @@ dir.create(
 # Save Final Models
 
 ```{r}
-
 saveRDS(
         final_payoff_maximizing_choice_model,
         here::here(
@@ -655,6 +673,46 @@ saveRDS(
         )
 )
 
+```
+
+# Save Models Summary
+
+```{r}
+saveRDS(
+    export_model_summary(final_payoff_maximizing_choice_model),
+    here::here(
+        "results",
+        "models",
+        "payoff-maximizing-model-summary.rds"
+    )
+)
+
+saveRDS(
+    export_model_summary(final_reward_model),
+    here::here(
+        "results",
+        "models",
+        "reward-model-summary.rds"
+    )
+)
+
+saveRDS(
+    export_model_summary(final_log_rt_model),
+    here::here(
+        "results",
+        "models",
+        "log-rt-model-summary.rds"
+    )
+)
+
+saveRDS(
+    export_model_summary(final_choice_switch_model),
+    here::here(
+        "results",
+        "models",
+        "choice-switch-model-summary.rds"
+    )
+)
 ```
 
 # Descriptive Statistics
