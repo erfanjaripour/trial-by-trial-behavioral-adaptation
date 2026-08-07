@@ -32,7 +32,7 @@ The dataset contains one row per trial per participant.
 
 \* \*\*Task:\*\* 4-arm restless bandit
 
-\* \*\*Missing trial rule:\*\* trials with no response within 4 seconds are recorded as missed and carry no reward
+\* \*\*Missing trial rule:\*\* trials with no response within 4 seconds are recorded as missed and carry no reward.
 
 
 
@@ -62,11 +62,11 @@ The dataset contains one row per trial per participant.
 
 | reward\_c4      |          numeric | Reward value for option 4 under the predefined reward schedule.                           |
 
-| trial          |          integer | Sequential trial number within each participant in the analysis-ready dataset.                                                         
+| trial          |          integer | Sequential trial number within each participant in the analysis-ready dataset.
 
 | payoff\_maximizing\_choice |          integer | Binary indicator of whether the participant selected an option with the highest reward value according to the predefined trial-specific reward schedule. When multiple options shared the maximum reward value, selecting any of those options was coded as payoff-maximizing.                                       |
 
-| choice\_switching  |          integer | Whether the participant switched from the previous choice. Values: NA = first trial, 0 = No, 1 = Yes. |
+| choice\_switch  |          integer | Whether the participant switched from the previous choice. Values: NA = first trial, 0 = No, 1 = Yes. |
 
 
 
@@ -77,7 +77,7 @@ The dataset contains one row per trial per participant.
 * The dataset is anonymised and contains no direct participant identifiers.
 * choice records the participant’s actual decision.
 * reward records the obtained outcome after the decision.
-* reward\_c1 to reward\_c4 represent the per-trial reward values provided in the dataset. These variables may permit reconstruction of the task's reward schedule or derivation of an payoff-maximizing choice, subject to verification against the original dataset documentation.
+* reward\_c1 to reward\_c4 represent the per-trial reward values for each option provided in the dataset. These variables were used to derive the payoff-maximizing choice indicator by identifying the option(s) with the highest available reward on each trial.
 * payoff\_group was converted from an integer variable to a categorical factor during preprocessing. The reference category was fixed as payoff group 2 to ensure consistent interpretation of model coefficients across analyses.
 * Raw data are stored unchanged in data/raw/.
 * Trials without recorded responses (missing choice and reward) are excluded during preprocessing because behavioural outcomes cannot be calculated.

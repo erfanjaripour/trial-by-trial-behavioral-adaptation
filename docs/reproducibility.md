@@ -52,7 +52,7 @@ Dataset:
 
 
 
-Bahrami2020 Four-Arm Restless Bandit Dataset
+4 Arm Bandit Task Dataset
 
 
 
@@ -156,14 +156,6 @@ It does not represent a latent reinforcement-learning optimum or estimated parti
 
 
 
-\## Bayesian Analysis Consideration
-
-
-
-Bayesian multilevel models were considered as an additional robustness analysis but were not included in the final workflow due to computational constraints. The final analyses therefore rely on frequentist mixed-effects models as the primary inferential framework.
-
-
-
 \## Reproduction Steps
 
 
@@ -182,49 +174,81 @@ Bayesian multilevel models were considered as an additional robustness analysis 
 
 
 
-data/
+├── .gitignore
 
-├── raw/
+├── CITATION.cff
 
-└── processed/
+├── LICENSE
 
+├── README.md
 
+├── reinforcement-learning-trajectories.Rproj
 
-R/
+├── renv.lock
 
-├── preprocessing.R
+│
 
-├── models.R
+├── R/
 
-└── visualization.R
+│   ├── preprocessing.R
 
+│   ├── models.R
 
+│   └── visualization.R
 
-notebooks/
+│
 
-├── 01-data-inspection.qmd
+├── data/
 
-├── 02-exploratory-analysis.qmd
+│   ├── raw/
 
-└── 03-modeling.qmd
+│   └── processed/
 
+│
 
+├── docs/
 
-results/
+│   ├── data\_dictionary.md
 
-├── figures/
+│   ├── analysis\_plan.md
 
-├── tables/
+│   └── reproducibility.md
 
-└── models/
+│
 
+├── manuscript/
 
+│   ├── manuscript.tex
 
-docs/
+│   └── references.bib
 
-├── data-dictionary.md
+│
 
-├── analysis-plan.md
+├── notebooks/
 
-└── reproducibility.md
+│   ├── 01\_data\_inspection.qmd
+
+│   ├── 02\_exploratory\_analysis.qmd
+
+│   └── 03\_modeling.qmd
+
+│
+
+├── renv/
+
+│   ├── .gitignore
+
+│   ├── activate.R
+
+│   └── settings.json
+
+│
+
+└── results/
+
+    ├── figures/
+
+    ├── tables/
+
+    └── models/
 

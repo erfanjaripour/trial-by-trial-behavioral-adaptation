@@ -6,7 +6,7 @@
 
 
 
-This project investigates trial-by-trial reinforcement learning performance using mixed-effects analysis. The analysis follows a fully reproducible workflow from raw data to statistical inference.
+This project investigates trial-by-trial behavioural adaptation in a reinforcement-learning task environment using mixed-effects analysis. The analysis follows a fully reproducible workflow from raw data to statistical inference.
 
 
 
@@ -77,7 +77,7 @@ Secondary analyses examine obtained reward, reaction time, and exploratory behav
 
 
 
-Bayesian multilevel models were considered as an additional robustness analysis but were not included in the final workflow due to computational constraints.
+Bayesian multilevel models were considered as an additional robustness analysis but were not included in the final workflow. The final analysis framework therefore uses frequentist mixed-effects models.
 
 
 
