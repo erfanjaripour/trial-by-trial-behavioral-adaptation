@@ -48,8 +48,13 @@ payoff_maximizing_fixed <-
                 processed_data
         )
 
-payoff_maximizing_random_slope <-
+payoff_maximizing_random_slope_uncorrelated <-
         fit_payoff_maximizing_choice_random_slope_uncorrelated(
+                processed_data
+        )
+
+payoff_maximizing_random_slope_correlated <-
+        fit_payoff_maximizing_choice_random_slope_correlated(
                 processed_data
         )
 
@@ -66,7 +71,9 @@ model_summary(payoff_maximizing_null)
 
 model_summary(payoff_maximizing_fixed)
 
-model_summary(payoff_maximizing_random_slope)
+model_summary(payoff_maximizing_random_slope_uncorrelated)
+
+model_summary(payoff_maximizing_random_slope_correlated)
 
 model_summary(payoff_maximizing_interaction)
 
@@ -94,7 +101,8 @@ payoff_maximizing_comparison <-
         compare_models(
                 null = payoff_maximizing_null,
                 fixed = payoff_maximizing_fixed,
-                random_slope = payoff_maximizing_random_slope,
+                random_slope = payoff_maximizing_random_slope_uncorrelated,
+                random_slope_correlated = payoff_maximizing_random_slope_correlated,
                 interaction = payoff_maximizing_interaction
         )
 
@@ -109,11 +117,11 @@ compare_nested_models(
 
 compare_nested_models(
         payoff_maximizing_fixed,
-        payoff_maximizing_random_slope,
+        payoff_maximizing_random_slope_uncorrelated,
 )
 
 compare_nested_models(
-        payoff_maximizing_random_slope,
+        payoff_maximizing_random_slope_uncorrelated,
         payoff_maximizing_interaction,
 )
 ```
@@ -481,6 +489,11 @@ plot_predictions_by_group(
 ## Quadratic Learning Model
 
 ```{r}
+payoff_maximizing_linear_quadratic_ready <-
+        fit_payoff_maximizing_choice_linear_quadratic_ready(
+                processed_data
+        )
+
 payoff_maximizing_quadratic <-
         fit_payoff_maximizing_choice_quadratic(
                 processed_data
@@ -489,26 +502,28 @@ payoff_maximizing_quadratic <-
 
 quadratic_comparison <-
         compare_models(
-                linear = payoff_maximizing_interaction,
+                linear = payoff_maximizing_linear_quadratic_ready,
                 quadratic = payoff_maximizing_quadratic
         )
 
 quadratic_comparison
+
+quadratic_likelihood_ratio <-
+        compare_nested_models(
+                payoff_maximizing_linear_quadratic_ready,
+                payoff_maximizing_quadratic,
+        )
+
+quadratic_likelihood_ratio
 ```
 
 ## Random-Effects Sensitivity
 
 ```{r}
-payoff_maximizing_correlated_slope <-
-        fit_payoff_maximizing_choice_random_slope_correlated(
-                processed_data
-        )
-
-
 random_effect_comparison <-
         compare_models(
-                uncorrelated = payoff_maximizing_random_slope,
-                correlated = payoff_maximizing_correlated_slope
+                uncorrelated = payoff_maximizing_random_slope_uncorrelated,
+                correlated = payoff_maximizing_random_slope_correlated
         )
 
 random_effect_comparison
@@ -575,7 +590,60 @@ check_singularity(switch_interaction)
 model_summary(switch_interaction)
 
 ```
-Final model selection was performed after evaluating model convergence, singularity diagnostics, model fit comparisons, residual diagnostics, and sensitivity analyses. The retained models represent the best-supported specifications among the candidate models based on the predefined evaluation criteria. Subsequent analyses and visualizations were conducted using these final model specifications.
+## Model Selection Criteria
+
+The final model specification was selected based on:
+
+- model convergence,
+- absence of singular random-effects structure,
+- improved model fit based on AIC, BIC, and log-likelihood,
+- likelihood-ratio tests for nested model comparisons.
+
+For the primary outcome, the interaction model was retained because it provided improved model fit compared with simpler alternatives based on AIC, BIC, log-likelihood, and likelihood-ratio tests.
+
+```{r}
+payoff_maximizing_selection <-
+        tibble::tibble(
+                model = c(
+                        "null",
+                        "fixed",
+                        "random_slope",
+                        "interaction"
+                ),
+                AIC = c(
+                        AIC(payoff_maximizing_null),
+                        AIC(payoff_maximizing_fixed),
+                        AIC(payoff_maximizing_random_slope_uncorrelated),
+                        AIC(payoff_maximizing_interaction)
+                ),
+                BIC = c(
+                        BIC(payoff_maximizing_null),
+                        BIC(payoff_maximizing_fixed),
+                        BIC(payoff_maximizing_random_slope_uncorrelated),
+                        BIC(payoff_maximizing_interaction)
+                ),
+                logLik = c(
+                        as.numeric(logLik(payoff_maximizing_null)),
+                        as.numeric(logLik(payoff_maximizing_fixed)),
+                        as.numeric(logLik(payoff_maximizing_random_slope_uncorrelated)),
+                        as.numeric(logLik(payoff_maximizing_interaction))
+                ),
+                singular = c(
+                        isSingular(payoff_maximizing_null),
+                        isSingular(payoff_maximizing_fixed),
+                        isSingular(payoff_maximizing_random_slope_uncorrelated),
+                        isSingular(payoff_maximizing_interaction)
+                ),
+                convergence = c(
+                        check_convergence(payoff_maximizing_null),
+                        check_convergence(payoff_maximizing_fixed),
+                        check_convergence(payoff_maximizing_random_slope_uncorrelated),
+                        check_convergence(payoff_maximizing_interaction)
+)
+        )
+
+payoff_maximizing_selection
+```
 
 # Final Model Selection
 
@@ -585,7 +653,7 @@ final_payoff_maximizing_choice_model <- payoff_maximizing_interaction
 
 final_reward_model <- reward_interaction
 
-final_log_rt_model <- log_rt_interaction
+final_log_rt_model <- log_rt_random_slope
 
 final_choice_switch_model <- switch_interaction
 
@@ -1500,7 +1568,7 @@ payoff_maximizing_model_comparison <-
         compare_models(
                 null = payoff_maximizing_null,
                 fixed = payoff_maximizing_fixed,
-                random_slope = payoff_maximizing_random_slope,
+                random_slope = payoff_maximizing_random_slope_uncorrelated,
                 interaction = payoff_maximizing_interaction
         ) |>
         dplyr::mutate(
@@ -1805,32 +1873,44 @@ random_effects_robustness <-
         tibble::tibble(
 
                 model = c(
-                        "uncorrelated_random_slope"
+                        "uncorrelated_random_slope",
+                        "correlated_random_slope"
                 ),
 
                 AIC = c(
-                        AIC(payoff_maximizing_interaction)
+                        AIC(payoff_maximizing_random_slope_uncorrelated),
+                        AIC(payoff_maximizing_random_slope_correlated)
                 ),
 
                 BIC = c(
-                        BIC(payoff_maximizing_interaction)
+                        BIC(payoff_maximizing_random_slope_uncorrelated),
+                        BIC(payoff_maximizing_random_slope_correlated)
                 ),
 
                 logLik = c(
                         as.numeric(
-                                logLik(payoff_maximizing_interaction)
+                                logLik(payoff_maximizing_random_slope_uncorrelated)
+                        ),
+                        as.numeric(
+                                logLik(payoff_maximizing_random_slope_correlated)
                         )
                 ),
 
                 convergence = c(
                         check_convergence(
-                                payoff_maximizing_interaction
+                                payoff_maximizing_random_slope_uncorrelated
+                        ),
+                        check_convergence(
+                                payoff_maximizing_random_slope_correlated
                         )
                 ),
 
                 singularity = c(
                         lme4::isSingular(
-                                payoff_maximizing_interaction
+                                payoff_maximizing_random_slope_uncorrelated
+                        ),
+                        lme4::isSingular(
+                                payoff_maximizing_random_slope_correlated
                         )
                 )
         )
@@ -1914,8 +1994,8 @@ robustness_summary <-
                 ),
 
                 criteria = c(
-                        "AIC, BIC, logLik, convergence, singularity",
-                        "AIC, BIC, logLik"
+                        "AIC, BIC, logLik, likelihood-ratio test, convergence, singularity",
+                        "AIC, BIC, logLik, likelihood-ratio test"
                 )
 
         )

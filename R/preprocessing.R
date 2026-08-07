@@ -330,10 +330,10 @@ verify_dataset <- function(data) {
                         all(as.character(data$payoff_group) %in% c("2", "3", "4")),
                 
                 valid_payoff_maximizing_choice =
-                        all(stats::na.omit(data$payoff_maximizing_choice) %in% c(TRUE, FALSE)),
+                        all(stats::na.omit(data$payoff_maximizing_choice) %in% c(0L, 1L)),
                 
                 valid_choice_switch =
-                        all(stats::na.omit(data$choice_switch) %in% c(TRUE, FALSE)),
+                        all(stats::na.omit(data$choice_switch) %in% c(0L, 1L)),
                 
                 first_trial_switch_missing =
                         data |>

@@ -13,9 +13,7 @@ add_trial_quadratic <- function(data) {
         data |>
                 center_trial() |>
                 dplyr::mutate(
-                        trial_c2 = as.numeric(
-                                scale(trial_c^2)
-                        )
+                        trial_c2 = as.numeric(scale(trial_c^2))
                 )
 }
 
@@ -41,6 +39,9 @@ payoff_maximizing_interaction_formula <-
         payoff_maximizing_choice ~ trial_c * payoff_group +
         (1 + trial_c || id)
 
+payoff_maximizing_quadratic_formula <-
+        payoff_maximizing_choice ~ (trial_c + trial_c2) * payoff_group +
+        (1 + trial_c || id)
 
 reward_null_formula <-
         reward ~ 1 +
@@ -73,7 +74,7 @@ log_rt_random_slope_formula <-
 
 log_rt_interaction_formula <-
         log_rt ~ trial_c * payoff_group +
-        (1 | id)
+        (1 + trial_c || id)
 
 
 choice_switch_null_formula <-
@@ -289,15 +290,18 @@ compare_nested_models <- function(model1, model2, ...) {
 
 fit_payoff_maximizing_choice_quadratic <- function(data) {
         
-        data <- add_trial_quadratic(data)
+        lme4::glmer(
+                formula = payoff_maximizing_quadratic_formula,
+                data = add_trial_quadratic(data),
+                family = binomial(link = "logit")
+        )
+}
+
+fit_payoff_maximizing_choice_linear_quadratic_ready <- function(data) {
         
         lme4::glmer(
-                payoff_maximizing_choice ~
-                        trial_c +
-                        trial_c2 +
-                        payoff_group +
-                        (1 + trial_c || id),
-                data = data,
+                formula = payoff_maximizing_interaction_formula,
+                data = add_trial_quadratic(data),
                 family = binomial(link = "logit")
         )
 }
