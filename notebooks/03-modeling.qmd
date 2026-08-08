@@ -21,8 +21,89 @@ source("../R/preprocessing.R")
 source("../R/models.R")
 source("../R/visualization.R")
 
-processed_data <- readr::read_csv(
-        "../data/processed/processed-data.csv"
+raw_data <- load_raw_data()
+
+processed_data <- load_processed_data()
+```
+
+# Create Results Directory
+
+```{r}
+
+dir.create(
+        here::here(
+                "results",
+                "tables"
+        ),
+        recursive = TRUE,
+        showWarnings = FALSE
+)
+
+dir.create(
+        here::here(
+                "results",
+                "figures"
+        ),
+        recursive = TRUE,
+        showWarnings = FALSE
+)
+
+dir.create(
+        here::here(
+                "results",
+                "models"
+        ),
+        recursive = TRUE,
+        showWarnings = FALSE
+)
+
+dir.create(
+        here::here(
+                "results",
+                "figures",
+                "diagnostics"
+        ),
+        recursive = TRUE,
+        showWarnings = FALSE
+)
+
+```
+
+# Participant Retention Audit
+
+```{r}
+participant_retention <-
+        participant_retention_summary(
+                raw_data = raw_data,
+                processed_data = processed_data
+        )
+
+participant_retention
+
+readr::write_csv(
+        participant_retention,
+        here::here(
+                "results",
+                "tables",
+                "participant-retention-summary.csv"
+        )
+)
+
+participant_retention_details <-
+        participant_retention_details(
+                raw_data = raw_data,
+                processed_data = processed_data
+        )
+
+participant_retention_details
+
+readr::write_csv(
+        participant_retention_details,
+        here::here(
+                "results",
+                "tables",
+                "participant-retention-details.csv"
+        )
 )
 ```
 
@@ -78,13 +159,9 @@ model_summary(payoff_maximizing_random_slope_correlated)
 model_summary(payoff_maximizing_interaction)
 
 
-check_convergence(
-        payoff_maximizing_interaction
-)
+model_convergence(payoff_maximizing_interaction)
 
-check_singularity(
-        payoff_maximizing_interaction
-)
+model_singularity(payoff_maximizing_interaction)
 ```
 
 ## Model Export Validation
@@ -123,21 +200,6 @@ compare_nested_models(
 compare_nested_models(
         payoff_maximizing_random_slope_uncorrelated,
         payoff_maximizing_interaction,
-)
-```
-
-## Diagnostic Evaluation
-
-```{r}
-payoff_maximizing_dharma <-
-        DHARMa::simulateResiduals(
-                fittedModel = payoff_maximizing_interaction
-        )
-
-plot(payoff_maximizing_dharma)
-
-DHARMa::testDispersion(
-        payoff_maximizing_dharma
 )
 ```
 
@@ -198,13 +260,9 @@ model_summary(reward_random_slope)
 model_summary(reward_interaction)
 
 
-check_convergence(
-        reward_interaction
-)
+model_convergence(reward_interaction)
 
-check_singularity(
-        reward_interaction
-)
+model_singularity(reward_interaction)
 ```
 
 
@@ -306,20 +364,15 @@ model_summary(log_rt_random_slope)
 model_summary(log_rt_interaction)
 
 
-check_convergence(
-        log_rt_interaction
-)
+model_convergence(log_rt_random_slope)
 
-check_singularity(
-        log_rt_interaction
-)
+model_singularity(log_rt_random_slope)
 ```
 
 ## Model Export Validation
 
 ```{r}
-log_rt_export <-
-        export_model_summary(log_rt_interaction)
+log_rt_export <- export_model_summary(log_rt_random_slope)
 ```
 
 ## Model Comparison
@@ -356,21 +409,17 @@ compare_nested_models(
 ## Diagnostics
 
 ```{r}
-plot_lmm_residuals(
-        log_rt_interaction
-)
+plot_lmm_residuals(log_rt_random_slope)
 
 
-plot_lmm_qq(
-        log_rt_interaction
-)
+plot_lmm_qq(log_rt_random_slope)
 ```
 
 ## Visualization
 
 ```{r}
 plot_predictions_by_group(
-        log_rt_interaction,
+        log_rt_random_slope,
         y_label = "Predicted log reaction time"
 )
 ```
@@ -413,13 +462,9 @@ model_summary(switch_random_slope)
 model_summary(switch_interaction)
 
 
-check_convergence(
-        switch_interaction
-)
+model_convergence(switch_interaction)
 
-check_singularity(
-        switch_interaction
-)
+model_singularity(switch_interaction)
 ```
 
 ## Model Export Validation
@@ -484,49 +529,93 @@ plot_predictions_by_group(
 )
 ```
 
-# Robustness Analyses
+# Primary Model Selection
 
-## Quadratic Learning Model
+## Linear vs Quadratic Trial Trajectory
 
 ```{r}
-payoff_maximizing_linear_quadratic_ready <-
-        fit_payoff_maximizing_choice_linear_quadratic_ready(
+payoff_maximizing_quadratic_uncorrelated <-
+        fit_payoff_maximizing_choice_quadratic_uncorrelated(
                 processed_data
         )
 
-payoff_maximizing_quadratic <-
-        fit_payoff_maximizing_choice_quadratic(
+payoff_maximizing_quadratic_correlated <-
+        fit_payoff_maximizing_choice_quadratic_correlated(
                 processed_data
         )
 
 
 quadratic_comparison <-
         compare_models(
-                linear = payoff_maximizing_linear_quadratic_ready,
-                quadratic = payoff_maximizing_quadratic
+                linear_interaction = payoff_maximizing_interaction,
+                quadratic_uncorrelated = payoff_maximizing_quadratic_uncorrelated,
+                quadratic_correlated = payoff_maximizing_quadratic_correlated
+        ) |>
+        dplyr::mutate(
+                delta_AIC = AIC - min(AIC)
         )
 
 quadratic_comparison
+```
 
-quadratic_likelihood_ratio <-
-        compare_nested_models(
-                payoff_maximizing_linear_quadratic_ready,
-                payoff_maximizing_quadratic,
+```{r}
+payoff_maximizing_interaction_quadratic_data <-
+        fit_payoff_maximizing_interaction_quadratic_data(
+                processed_data
         )
 
-quadratic_likelihood_ratio
+payoff_maximizing_linear_vs_quadratic <-
+        compare_models(
+                linear = payoff_maximizing_interaction_quadratic_data,
+                quadratic = payoff_maximizing_quadratic_uncorrelated
+        ) |>
+        dplyr::mutate(
+                delta_AIC = AIC - min(AIC)
+        )
+
+payoff_maximizing_linear_vs_quadratic
+
+payoff_maximizing_quadratic_likelihood_ratio <-
+        compare_nested_models(
+                payoff_maximizing_interaction_quadratic_data,
+                payoff_maximizing_quadratic_uncorrelated
+        )
+
+payoff_maximizing_quadratic_likelihood_ratio
+```
+
+## Quadratic Model Validation
+
+```{r}
+model_convergence(payoff_maximizing_quadratic_correlated)
+
+model_singularity(payoff_maximizing_quadratic_correlated)
+
+model_summary(payoff_maximizing_quadratic_correlated)
 ```
 
 ## Random-Effects Sensitivity
 
 ```{r}
-random_effect_comparison <-
-        compare_models(
-                uncorrelated = payoff_maximizing_random_slope_uncorrelated,
-                correlated = payoff_maximizing_random_slope_correlated
+payoff_maximizing_quadratic_correlated <-
+        fit_payoff_maximizing_choice_quadratic_correlated(
+                processed_data
         )
 
-random_effect_comparison
+quadratic_random_effect_comparison <-
+        compare_models(
+                uncorrelated = payoff_maximizing_quadratic_uncorrelated,
+                correlated = payoff_maximizing_quadratic_correlated
+        ) |>
+        dplyr::mutate(
+                delta_AIC = AIC - min(AIC)
+        )
+
+quadratic_random_effect_comparison
+
+model_convergence(payoff_maximizing_quadratic_correlated)
+
+model_singularity(payoff_maximizing_quadratic_correlated)
 ```
 
 # Fixed Effects Reporting
@@ -534,7 +623,7 @@ random_effect_comparison
 ```{r}
 payoff_maximizing_effects <-
         broom.mixed::tidy(
-                payoff_maximizing_interaction,
+                payoff_maximizing_quadratic_uncorrelated,
                 effects = "fixed",
                 conf.int = TRUE
         )
@@ -550,7 +639,7 @@ reward_effects <-
 
 log_rt_effects <-
         broom.mixed::tidy(
-                log_rt_interaction,
+                log_rt_random_slope,
                 effects = "fixed",
                 conf.int = TRUE
         )
@@ -569,24 +658,29 @@ reward_effects
 log_rt_effects
 switch_effects
 ```
+
 # Final Model Validation
 
 ```{r}
 
-check_convergence(payoff_maximizing_interaction)
-check_singularity(payoff_maximizing_interaction)
-model_summary(payoff_maximizing_interaction)
+model_convergence(payoff_maximizing_quadratic_uncorrelated)
+model_singularity(payoff_maximizing_quadratic_uncorrelated)
+model_summary(payoff_maximizing_quadratic_uncorrelated)
 
-check_convergence(reward_interaction)
-check_singularity(reward_interaction)
+model_convergence(payoff_maximizing_quadratic_correlated)
+model_singularity(payoff_maximizing_quadratic_correlated)
+model_summary(payoff_maximizing_quadratic_correlated)
+
+model_convergence(reward_interaction)
+model_singularity(reward_interaction)
 model_summary(reward_interaction)
 
-check_convergence(log_rt_interaction)
-check_singularity(log_rt_interaction)
-model_summary(log_rt_interaction)
+model_convergence(log_rt_random_slope)
+model_singularity(log_rt_random_slope)
+model_summary(log_rt_random_slope)
 
-check_convergence(switch_interaction)
-check_singularity(switch_interaction)
+model_convergence(switch_interaction)
+model_singularity(switch_interaction)
 model_summary(switch_interaction)
 
 ```
@@ -599,47 +693,130 @@ The final model specification was selected based on:
 - improved model fit based on AIC, BIC, and log-likelihood,
 - likelihood-ratio tests for nested model comparisons.
 
-For the primary outcome, the interaction model was retained because it provided improved model fit compared with simpler alternatives based on AIC, BIC, log-likelihood, and likelihood-ratio tests.
+The quadratic trial specification provided a substantially better fit than the linear interaction model, with lower AIC and BIC and a highly significant likelihood-ratio test. The correlated quadratic specification was retained as the final primary model because it provided better AIC, BIC, and log-likelihood than the uncorrelated specification, with no evidence of convergence failure or singularity.
 
 ```{r}
 payoff_maximizing_selection <-
         tibble::tibble(
+
                 model = c(
                         "null",
                         "fixed",
                         "random_slope",
-                        "interaction"
+                        "linear_interaction",
+                        "quadratic_uncorrelated",
+                        "quadratic_correlated"
                 ),
+
                 AIC = c(
                         AIC(payoff_maximizing_null),
                         AIC(payoff_maximizing_fixed),
                         AIC(payoff_maximizing_random_slope_uncorrelated),
-                        AIC(payoff_maximizing_interaction)
+                        AIC(payoff_maximizing_interaction),
+                        AIC(payoff_maximizing_quadratic_uncorrelated),
+                        AIC(payoff_maximizing_quadratic_correlated)
                 ),
+
                 BIC = c(
                         BIC(payoff_maximizing_null),
                         BIC(payoff_maximizing_fixed),
                         BIC(payoff_maximizing_random_slope_uncorrelated),
-                        BIC(payoff_maximizing_interaction)
+                        BIC(payoff_maximizing_interaction),
+                        BIC(payoff_maximizing_quadratic_uncorrelated),
+                        BIC(payoff_maximizing_quadratic_correlated)
                 ),
+
                 logLik = c(
-                        as.numeric(logLik(payoff_maximizing_null)),
-                        as.numeric(logLik(payoff_maximizing_fixed)),
-                        as.numeric(logLik(payoff_maximizing_random_slope_uncorrelated)),
-                        as.numeric(logLik(payoff_maximizing_interaction))
+                        as.numeric(
+                                logLik(payoff_maximizing_null)
+                        ),
+                        as.numeric(
+                                logLik(payoff_maximizing_fixed)
+                        ),
+                        as.numeric(
+                                logLik(payoff_maximizing_random_slope_uncorrelated)
+                        ),
+                        as.numeric(
+                                logLik(payoff_maximizing_interaction)
+                        ),
+                        as.numeric(
+                                logLik(payoff_maximizing_quadratic_uncorrelated)
+                        ),
+                        as.numeric(
+                                logLik(payoff_maximizing_quadratic_correlated)
+                        )
                 ),
+
+                parameters = c(
+                        attr(
+                                logLik(payoff_maximizing_null),
+                                "df"
+                        ),
+                        attr(
+                                logLik(payoff_maximizing_fixed),
+                                "df"
+                        ),
+                        attr(
+                                logLik(payoff_maximizing_random_slope_uncorrelated),
+                                "df"
+                        ),
+                        attr(
+                                logLik(payoff_maximizing_interaction),
+                                "df"
+                        ),
+                        attr(
+                                logLik(payoff_maximizing_quadratic_uncorrelated),
+                                "df"
+                        ),
+                        attr(
+                                logLik(payoff_maximizing_quadratic_correlated),
+                                "df"
+                        )
+                ),
+
+                delta_AIC = AIC - min(AIC),
+
                 singular = c(
-                        isSingular(payoff_maximizing_null),
-                        isSingular(payoff_maximizing_fixed),
-                        isSingular(payoff_maximizing_random_slope_uncorrelated),
-                        isSingular(payoff_maximizing_interaction)
+                        model_singularity(
+                                payoff_maximizing_null
+                        ),
+                        model_singularity(
+                                payoff_maximizing_fixed
+                        ),
+                        model_singularity(
+                                payoff_maximizing_random_slope_uncorrelated
+                        ),
+                        model_singularity(
+                                payoff_maximizing_interaction
+                        ),
+                        model_singularity(
+                                payoff_maximizing_quadratic_uncorrelated
+                        ),
+                        model_singularity(
+                                payoff_maximizing_quadratic_correlated
+                        )
                 ),
+
                 convergence = c(
-                        check_convergence(payoff_maximizing_null),
-                        check_convergence(payoff_maximizing_fixed),
-                        check_convergence(payoff_maximizing_random_slope_uncorrelated),
-                        check_convergence(payoff_maximizing_interaction)
-)
+                        model_convergence(
+                                payoff_maximizing_null
+                        ),
+                        model_convergence(
+                                payoff_maximizing_fixed
+                        ),
+                        model_convergence(
+                                payoff_maximizing_random_slope_uncorrelated
+                        ),
+                        model_convergence(
+                                payoff_maximizing_interaction
+                        ),
+                        model_convergence(
+                                payoff_maximizing_quadratic_uncorrelated
+                        ),
+                        model_convergence(
+                                payoff_maximizing_quadratic_correlated
+                        )
+                )
         )
 
 payoff_maximizing_selection
@@ -649,7 +826,7 @@ payoff_maximizing_selection
 
 ```{r}
 
-final_payoff_maximizing_choice_model <- payoff_maximizing_interaction
+final_payoff_maximizing_choice_model <- payoff_maximizing_quadratic_correlated
 
 final_reward_model <- reward_interaction
 
@@ -657,47 +834,51 @@ final_log_rt_model <- log_rt_random_slope
 
 final_choice_switch_model <- switch_interaction
 
-```
+final_model_specifications <-
+        tibble::tibble(
+                outcome = c(
+                        "payoff_maximizing_choice",
+                        "reward",
+                        "log_rt",
+                        "choice_switch"
+                ),
+                formula = c(
+                        paste(
+                                deparse(
+                                        formula(
+                                                final_payoff_maximizing_choice_model
+                                        )
+                                ),
+                                collapse = " "
+                        ),
+                        paste(
+                                deparse(
+                                        formula(final_reward_model)
+                                ),
+                                collapse = " "
+                        ),
+                        paste(
+                                deparse(
+                                        formula(final_log_rt_model)
+                                ),
+                                collapse = " "
+                        ),
+                        paste(
+                                deparse(
+                                        formula(final_choice_switch_model)
+                                ),
+                                collapse = " "
+                        )
+                )
+        )
 
-# Create Results Directory
-
-```{r}
-
-dir.create(
+readr::write_csv(
+        final_model_specifications,
         here::here(
                 "results",
-                "tables"
-        ),
-        recursive = TRUE,
-        showWarnings = FALSE
-)
-
-dir.create(
-        here::here(
-                "results",
-                "figures"
-        ),
-        recursive = TRUE,
-        showWarnings = FALSE
-)
-
-dir.create(
-        here::here(
-                "results",
-                "models"
-        ),
-        recursive = TRUE,
-        showWarnings = FALSE
-)
-
-dir.create(
-        here::here(
-                "results",
-                "figures",
-                "diagnostics"
-        ),
-        recursive = TRUE,
-        showWarnings = FALSE
+                "tables",
+                "final-model-specifications.csv"
+        )
 )
 
 ```
@@ -740,19 +921,31 @@ saveRDS(
                 "final-choice-switch-model.rds"
         )
 )
-
 ```
 
 # Save Models Summary
 
 ```{r}
 saveRDS(
-    export_model_summary(final_payoff_maximizing_choice_model),
-    here::here(
-        "results",
-        "models",
-        "payoff-maximizing-model-summary.rds"
-    )
+        export_model_summary(
+                payoff_maximizing_quadratic_uncorrelated
+        ),
+        here::here(
+                "results",
+                "models",
+                "payoff-maximizing-quadratic-uncorrelated-model-summary.rds"
+        )
+)
+
+saveRDS(
+        export_model_summary(
+                payoff_maximizing_quadratic_correlated
+        ),
+        here::here(
+                "results",
+                "models",
+                "payoff-maximizing-quadratic-correlated-model-summary.rds"
+        )
 )
 
 saveRDS(
@@ -799,6 +992,49 @@ payoff_group_statistics <-
 descriptive_statistics
 
 payoff_group_statistics
+```
+
+
+
+```{r}
+choice_switch_missingness <-
+        processed_data |>
+        dplyr::group_by(id) |>
+        dplyr::summarise(
+                first_trial_switch_missing =
+                        is.na(choice_switch[trial == 1]),
+                missing_switch_count =
+                        sum(is.na(choice_switch)),
+                n_trials =
+                        dplyr::n(),
+                .groups = "drop"
+        )
+
+choice_switch_missingness_summary <-
+        choice_switch_missingness |>
+        dplyr::summarise(
+                participants = dplyr::n(),
+                participants_with_first_trial_missing =
+                        sum(first_trial_switch_missing),
+                participants_with_only_structural_missing =
+                        sum(
+                                first_trial_switch_missing &
+                                missing_switch_count == 1
+                        ),
+                participants_with_additional_missing =
+                        sum(missing_switch_count > 1)
+        )
+
+choice_switch_missingness_summary
+
+readr::write_csv(
+        choice_switch_missingness_summary,
+        here::here(
+                "results",
+                "tables",
+                "choice-switch-missingness-summary.csv"
+        )
+)
 ```
 
 # Export Descriptive Tables
@@ -990,46 +1226,25 @@ choice_switch_fixed_effects <-
                 effects = "fixed"
         )
 
-
 payoff_maximizing_choice_confidence_intervals <-
         model_confidence_intervals(
                 final_payoff_maximizing_choice_model
-        ) |>
-        as.data.frame() |>
-        tibble::rownames_to_column(
-                "term"
         )
-
 
 reward_confidence_intervals <-
         model_confidence_intervals(
                 final_reward_model
-        ) |>
-        as.data.frame() |>
-        tibble::rownames_to_column(
-                "term"
         )
-
 
 log_rt_confidence_intervals <-
         model_confidence_intervals(
                 final_log_rt_model
-        ) |>
-        as.data.frame() |>
-        tibble::rownames_to_column(
-                "term"
         )
-
 
 choice_switch_confidence_intervals <-
         model_confidence_intervals(
                 final_choice_switch_model
-        ) |>
-        as.data.frame() |>
-        tibble::rownames_to_column(
-                "term"
         )
-
 
 payoff_maximizing_choice_fixed_effects
 
@@ -1038,6 +1253,12 @@ reward_fixed_effects
 log_rt_fixed_effects
 
 choice_switch_fixed_effects
+
+levels(processed_data$payoff_group)
+
+formula(final_payoff_maximizing_choice_model)
+
+lme4::fixef(final_payoff_maximizing_choice_model)
 ```
 
 # Logistic Model Odds Ratios
@@ -1313,6 +1534,16 @@ ggplot2::ggsave(
 figure_width <- 7
 figure_height <- 5
 figure_dpi <- 300
+
+prediction_data <-
+        processed_data |>
+        center_trial()
+
+trial_values <- seq(
+        min(prediction_data$trial_c, na.rm = TRUE),
+        max(prediction_data$trial_c, na.rm = TRUE),
+        length.out = 100
+)
 ```
 
 # Figure 1: Predicted probability of payoff maximizing choice
@@ -1321,14 +1552,14 @@ figure_dpi <- 300
 figure_payoff_maximizing_choice <-
         plot_predictions_by_group(
                 final_payoff_maximizing_choice_model,
-                trial_values = seq(-75, 75, by = 5),
+                trial_values = trial_values,
                 y_label = "Predicted probability of payoff maximizing choice"
         )
 
 figure_payoff_maximizing_choice
 ```
 
-```{r export}
+```{r}
 ggplot2::ggsave(
         filename = here::here(
                 "results",
@@ -1360,7 +1591,7 @@ ggplot2::ggsave(
 figure_reward_trajectory <-
         plot_predictions_by_group(
                 final_reward_model,
-                trial_values = seq(-75, 75, by = 5),
+                trial_values = trial_values,
                 y_label = "Predicted reward"
         )
 
@@ -1368,7 +1599,7 @@ figure_reward_trajectory <-
 figure_reward_trajectory
 ```
 
-```{r export}
+```{r}
 
 ggplot2::ggsave(
         filename = here::here(
@@ -1401,7 +1632,7 @@ ggplot2::ggsave(
 figure_reaction_time_trajectory <-
         plot_predictions_by_group(
                 final_log_rt_model,
-                trial_values = seq(-75, 75, by = 5),
+                trial_values = trial_values,
                 y_label = "Predicted log reaction time"
         )
 
@@ -1409,7 +1640,7 @@ figure_reaction_time_trajectory <-
 figure_reaction_time_trajectory
 ```
 
-```{r export}
+```{r}
 ggplot2::ggsave(
         filename = here::here(
                 "results",
@@ -1441,7 +1672,7 @@ ggplot2::ggsave(
 figure_choice_switch_probability <-
         plot_predictions_by_group(
                 final_choice_switch_model,
-                trial_values = seq(-75, 75, by = 5),
+                trial_values = trial_values,
                 y_label = "Predicted probability of switching"
         )
 
@@ -1449,7 +1680,7 @@ figure_choice_switch_probability <-
 figure_choice_switch_probability
 ```
 
-```{r export}
+```{r}
 ggplot2::ggsave(
         filename = here::here(
                 "results",
@@ -1511,7 +1742,7 @@ log_rt_coefficient_plot
 switch_odds_ratio_plot
 ```
 
-```{r export}
+```{r}
 effect_plots <- list(
         payoff_maximizing_choice_odds_ratios =
                 payoff_maximizing_odds_ratio_plot,
@@ -1569,7 +1800,9 @@ payoff_maximizing_model_comparison <-
                 null = payoff_maximizing_null,
                 fixed = payoff_maximizing_fixed,
                 random_slope = payoff_maximizing_random_slope_uncorrelated,
-                interaction = payoff_maximizing_interaction
+                interaction = payoff_maximizing_interaction,
+                quadratic_uncorrelated = payoff_maximizing_quadratic_uncorrelated,
+                quadratic_correlated = payoff_maximizing_quadratic_correlated
         ) |>
         dplyr::mutate(
                 delta_AIC = AIC - min(AIC),
@@ -1616,7 +1849,7 @@ switch_model_comparison <-
         )
 ```
 
-```{r export}
+```{r}
 readr::write_csv(
         payoff_maximizing_model_comparison,
         here::here(
@@ -1694,7 +1927,7 @@ payoff_maximizing_model_comparison_plot <-
 payoff_maximizing_model_comparison_plot
 ```
 
-```{r export}
+```{r}
 ggplot2::ggsave(
         filename = here::here(
                 "results",
@@ -1746,8 +1979,15 @@ plot(payoff_maximizing_dharma)
 
 dev.off()
 
+DHARMa::testUniformity(
+        payoff_maximizing_dharma
+)
 
 DHARMa::testDispersion(
+        payoff_maximizing_dharma
+)
+
+DHARMa::testZeroInflation(
         payoff_maximizing_dharma
 )
 ```
@@ -1776,8 +2016,15 @@ plot(switch_dharma)
 
 dev.off()
 
+DHARMa::testUniformity(
+        switch_dharma
+)
 
 DHARMa::testDispersion(
+        switch_dharma
+)
+
+DHARMa::testZeroInflation(
         switch_dharma
 )
 ```
@@ -1866,55 +2113,60 @@ ggplot2::ggsave(
 )
 ```
 
-# Random-Effects Sensitivity
+# Random-Effects Sensitivity Output
 
 ```{r}
 random_effects_robustness <-
         tibble::tibble(
 
                 model = c(
-                        "uncorrelated_random_slope",
-                        "correlated_random_slope"
+                        "quadratic_uncorrelated",
+                        "quadratic_correlated"
                 ),
 
                 AIC = c(
-                        AIC(payoff_maximizing_random_slope_uncorrelated),
-                        AIC(payoff_maximizing_random_slope_correlated)
+                        AIC(payoff_maximizing_quadratic_uncorrelated),
+                        AIC(payoff_maximizing_quadratic_correlated)
                 ),
 
                 BIC = c(
-                        BIC(payoff_maximizing_random_slope_uncorrelated),
-                        BIC(payoff_maximizing_random_slope_correlated)
+                        BIC(payoff_maximizing_quadratic_uncorrelated),
+                        BIC(payoff_maximizing_quadratic_correlated)
                 ),
 
                 logLik = c(
                         as.numeric(
-                                logLik(payoff_maximizing_random_slope_uncorrelated)
+                                logLik(payoff_maximizing_quadratic_uncorrelated)
                         ),
                         as.numeric(
-                                logLik(payoff_maximizing_random_slope_correlated)
+                                logLik(payoff_maximizing_quadratic_correlated)
                         )
                 ),
 
                 convergence = c(
-                        check_convergence(
-                                payoff_maximizing_random_slope_uncorrelated
+                        model_convergence(
+                                payoff_maximizing_quadratic_uncorrelated
                         ),
-                        check_convergence(
-                                payoff_maximizing_random_slope_correlated
+                        model_convergence(
+                                payoff_maximizing_quadratic_correlated
                         )
                 ),
 
                 singularity = c(
-                        lme4::isSingular(
-                                payoff_maximizing_random_slope_uncorrelated
+                        model_singularity(
+                                payoff_maximizing_quadratic_uncorrelated
                         ),
-                        lme4::isSingular(
-                                payoff_maximizing_random_slope_correlated
+                        model_singularity(
+                                payoff_maximizing_quadratic_correlated
                         )
                 )
+        ) |>
+        dplyr::mutate(
+                delta_AIC = AIC - min(AIC)
         )
 
+
+random_effects_robustness
 
 readr::write_csv(
         random_effects_robustness,
@@ -1933,37 +2185,38 @@ quadratic_robustness <-
         tibble::tibble(
 
                 model = c(
-                        "linear_trial",
-                        "quadratic_trial"
+                        "linear_interaction",
+                        "quadratic_interaction"
                 ),
 
                 AIC = c(
                         AIC(payoff_maximizing_interaction),
-                        AIC(payoff_maximizing_quadratic)
+                        AIC(payoff_maximizing_quadratic_uncorrelated)
                 ),
 
                 BIC = c(
                         BIC(payoff_maximizing_interaction),
-                        BIC(payoff_maximizing_quadratic)
+                        BIC(payoff_maximizing_quadratic_uncorrelated)
                 ),
 
                 logLik = c(
                         as.numeric(
                                 logLik(payoff_maximizing_interaction)
                         ),
-
                         as.numeric(
-                                logLik(payoff_maximizing_quadratic)
+                                logLik(payoff_maximizing_quadratic_uncorrelated)
                         )
                 )
-
+        ) |>
+        dplyr::mutate(
+                delta_AIC = AIC - min(AIC)
         )
 
 
-quadratic_robustness <-
-        quadratic_robustness |>
-        dplyr::mutate(
-                delta_AIC = AIC - min(AIC)
+quadratic_likelihood_ratio <-
+        compare_nested_models(
+                payoff_maximizing_interaction_quadratic_data,
+                payoff_maximizing_quadratic_uncorrelated
         )
 
 
@@ -1975,6 +2228,11 @@ readr::write_csv(
                 "quadratic-trial-robustness.csv"
         )
 )
+
+
+quadratic_robustness
+
+quadratic_likelihood_ratio
 ```
 
 # Overall Robustness Summary

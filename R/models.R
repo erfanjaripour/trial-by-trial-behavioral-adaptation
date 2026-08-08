@@ -4,7 +4,9 @@ center_trial <- function(data) {
         
         data |>
                 dplyr::mutate(
-                        trial_c = trial - mean(trial, na.rm = TRUE)
+                        trial_c = (
+                                trial - mean(trial, na.rm = TRUE)
+                        ) / sd(trial, na.rm = TRUE)
                 )
 }
 
@@ -13,7 +15,7 @@ add_trial_quadratic <- function(data) {
         data |>
                 center_trial() |>
                 dplyr::mutate(
-                        trial_c2 = as.numeric(scale(trial_c^2))
+                        trial_c2 = trial_c^2
                 )
 }
 
@@ -39,9 +41,13 @@ payoff_maximizing_interaction_formula <-
         payoff_maximizing_choice ~ trial_c * payoff_group +
         (1 + trial_c || id)
 
-payoff_maximizing_quadratic_formula <-
+payoff_maximizing_quadratic_uncorrelated_formula <-
         payoff_maximizing_choice ~ (trial_c + trial_c2) * payoff_group +
         (1 + trial_c || id)
+
+payoff_maximizing_quadratic_correlated_formula <- 
+        payoff_maximizing_choice ~ (trial_c + trial_c2) * payoff_group +
+        (1 + trial_c | id)
 
 reward_null_formula <-
         reward ~ 1 +
@@ -288,16 +294,7 @@ compare_nested_models <- function(model1, model2, ...) {
 
 # Robustness Analyses
 
-fit_payoff_maximizing_choice_quadratic <- function(data) {
-        
-        lme4::glmer(
-                formula = payoff_maximizing_quadratic_formula,
-                data = add_trial_quadratic(data),
-                family = binomial(link = "logit")
-        )
-}
-
-fit_payoff_maximizing_choice_linear_quadratic_ready <- function(data) {
+fit_payoff_maximizing_interaction_quadratic_data <- function(data) {
         
         lme4::glmer(
                 formula = payoff_maximizing_interaction_formula,
@@ -306,36 +303,19 @@ fit_payoff_maximizing_choice_linear_quadratic_ready <- function(data) {
         )
 }
 
-fit_reward_quadratic <- function(data) {
-        
-        lme4::lmer(
-                reward ~ trial_c + trial_c2 +
-                        payoff_group +
-                        (1 + trial_c || id),
-                data = add_trial_quadratic(data),
-                REML = FALSE
-        )
-}
-
-fit_log_rt_quadratic <- function(data) {
-        
-        data <- add_trial_quadratic(data)
-        
-        lme4::lmer(
-                log_rt ~ trial_c + trial_c2 +
-                        payoff_group +
-                        (1 + trial_c || id),
-                data = data,
-                REML = FALSE
-        )
-}
-
-fit_choice_switch_quadratic <- function(data) {
+fit_payoff_maximizing_choice_quadratic_uncorrelated <- function(data) {
         
         lme4::glmer(
-                choice_switch ~ trial_c + trial_c2 +
-                        payoff_group +
-                        (1 + trial_c || id),
+                formula = payoff_maximizing_quadratic_uncorrelated_formula,
+                data = add_trial_quadratic(data),
+                family = binomial(link = "logit")
+        )
+}
+
+fit_payoff_maximizing_choice_quadratic_correlated <- function(data) {
+        
+        lme4::glmer(
+                formula = payoff_maximizing_quadratic_correlated_formula,
                 data = add_trial_quadratic(data),
                 family = binomial(link = "logit")
         )
@@ -350,10 +330,17 @@ model_r2 <- function(model) {
 
 model_confidence_intervals <- function(model) {
         
-        confint(
+        broom.mixed::tidy(
                 model,
-                method = "Wald"
-        )
+                effects = "fixed",
+                conf.int = TRUE,
+                conf.method = "Wald"
+        ) |>
+                dplyr::select(
+                        term,
+                        conf.low,
+                        conf.high
+                )
 }
 
 model_odds_ratios <- function(model) {
@@ -362,8 +349,28 @@ model_odds_ratios <- function(model) {
                 model,
                 effects = "fixed",
                 conf.int = TRUE,
-                exponentiate = TRUE
+                exponentiate = TRUE,
+                conf.method = "Wald"
+        ) |>
+                dplyr::select(
+                        term,
+                        estimate,
+                        conf.low,
+                        conf.high,
+                        p.value
+                )
+}
+
+model_convergence <- function(model) {
+        
+        isTRUE(
+                model@optinfo$conv$opt == 0
         )
+}
+
+model_singularity <- function(model) {
+        
+        lme4::isSingular(model, tol = 1e-4)
 }
 
 model_summary <- function(model) {
@@ -371,7 +378,8 @@ model_summary <- function(model) {
         tibble::tibble(
                 observations = stats::nobs(model),
                 participants = nrow(lme4::ranef(model)$id),
-                singular = lme4::isSingular(model)
+                convergence = model_convergence(model),
+                singularity = model_singularity(model)
         )
 }
 

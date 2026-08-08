@@ -49,35 +49,27 @@ The project uses R, Quarto, Git, and renv to ensure computational reproducibilit
 
 
 
-\## Primary Analysis
+\# Primary Analysis
 
 
 
-The primary analysis fits a logistic mixed-effects model to examine changes in the probability of selecting the objectively payoff-maximizing choice across trials while accounting for participant-level variability.
+The primary analysis uses a logistic mixed-effects model to examine trial-by-trial changes in the probability of selecting an option with the highest available payoff.
 
 
 
-Choice-switch models excluded the first trial of each participant because switching requires a previous choice.
+\## Primary Outcome
 
 
 
-\### Primary Outcome
+`payoff\_maximizing\_choice` is a binary indicator of whether the participant selected an option with the highest trial-specific payoff among the four available options. If multiple options share the maximum payoff, selecting any of them is classified as payoff-maximizing.
 
 
 
-A payoff-maximizing choice is defined as selecting an option whose reward value equals the maximum reward value available on that trial. When two options share the maximum reward value, selecting either option is classified as a payoff-maximizing choice.
+The payoff values are taken from the trial-specific `reward\_c1`–`reward\_c4` variables provided in the dataset. These variables represent the predefined payoff values for the four options on each trial. The outcome is therefore a behavioural measure of selecting the currently highest-payoff option; it is not an estimate of a latent reinforcement-learning value function.
 
 
 
-\## Secondary Analyses
-
-
-
-Secondary analyses examine obtained reward, reaction time, and exploratory behavioural measures using appropriate mixed-effects models.
-
-
-
-Bayesian multilevel models were considered as an additional robustness analysis but were not included in the final workflow. The final analysis framework therefore uses frequentist mixed-effects models.
+Choice-switch analyses exclude the first trial of each participant because switching requires a previous choice.
 
 
 
@@ -85,37 +77,47 @@ Bayesian multilevel models were considered as an additional robustness analysis 
 
 
 
-The primary analysis uses a generalized linear mixed-effects model:
+The primary model is:
 
 
 
-payoff\\\_maximizing\\\_choice \\sim trial\_c \* payoff\\\_group + (1 + trial\_c || id)
+`payoff\_maximizing\_choice ~ trial\_c \* payoff\_group + (1 + trial\_c || id)`
 
 
 
-Payoff group was modeled as a categorical predictor with payoff group 2 specified as the reference category. Therefore, fixed-effect estimates for payoff groups 3 and 4 represent differences relative to payoff group 2. This reference level was selected because payoff group 2 represents the baseline payoff environment in the dataset.
+`trial\_c` is the centered trial number. `payoff\_group` is treated as a categorical predictor with payoff group 2 as the reference category.
 
 
 
-The model estimates how the probability of selecting the currently highest-payoff option changes across trials and payoff environments.
+The model includes:
 
 
 
-Model components:
+\* Fixed effects of trial, payoff group, and their interaction.
+
+\* Participant-specific random intercepts.
+
+\* Participant-specific uncorrelated random slopes for trial.
 
 
 
-\- Fixed effects estimate population-level changes in payoff-maximizing choice over experience, the differences between payoff groups relative to the reference category (payoff group 2), and trial-by-payoff-group interactions.
-
-\- Random intercepts capture individual differences in baseline choice tendencies.
-
-\- Random slopes capture individual differences in adaptation across trials.
+The random-slope structure allows participants to differ in their behavioural trajectories across trials. The uncorrelated specification avoids estimating an additional intercept-slope correlation parameter.
 
 
 
-The random-slope structure was selected because participants may differ not only in their baseline tendency to choose high-payoff options but also in how their behaviour changes with experience. The uncorrelated random-effects specification was retained because it provided participant-level trajectory variation while avoiding unnecessary estimation of the intercept-slope correlation.
+A quadratic trial specification was evaluated as a robustness analysis to assess possible nonlinear trajectories. The linear model was retained as the primary model because it provides a simpler and directly interpretable estimate of behavioural change across trials.
 
 
 
-A quadratic trial model was evaluated as a robustness analysis to assess potential nonlinear changes across experience. The primary linear trajectory model was retained for confirmatory interpretation because it provides a more interpretable estimate of behavioural change over trials.
+\## Secondary Analyses
+
+
+
+Secondary models examine obtained reward, log-transformed reaction time, and choice switching using linear or logistic mixed-effects models as appropriate.
+
+
+
+Robustness analyses assess the sensitivity of the primary results to alternative random-effects and trial-trajectory specifications.
+
+
 

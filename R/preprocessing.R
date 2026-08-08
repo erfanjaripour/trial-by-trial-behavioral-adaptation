@@ -223,6 +223,74 @@ participant_trial_distribution <- function(data) {
                 dplyr::count(n_trials)
 }
 
+participant_retention_summary <- function(
+                raw_data,
+                processed_data
+) {
+        
+        raw_participant_ids <-
+                unique(raw_data$id)
+        
+        processed_participant_ids <-
+                unique(processed_data$id)
+        
+        removed_participant_ids <-
+                setdiff(
+                        raw_participant_ids,
+                        processed_participant_ids
+                )
+        
+        tibble::tibble(
+                raw_participants =
+                        length(raw_participant_ids),
+                
+                processed_participants =
+                        length(processed_participant_ids),
+                
+                removed_participants =
+                        length(removed_participant_ids)
+        )
+}
+
+participant_retention_details <- function(
+                raw_data,
+                processed_data
+) {
+        
+        raw_ids <-
+                unique(raw_data$id)
+        
+        processed_ids <-
+                unique(processed_data$id)
+        
+        removed_ids <-
+                setdiff(
+                        raw_ids,
+                        processed_ids
+                )
+        
+        raw_data |>
+                dplyr::filter(
+                        id %in% removed_ids
+                ) |>
+                dplyr::group_by(id) |>
+                dplyr::summarise(
+                        raw_trials = dplyr::n(),
+                        missing_choice =
+                                sum(is.na(choice)),
+                        missing_reward =
+                                sum(is.na(reward)),
+                        missing_both =
+                                sum(
+                                        is.na(choice) &
+                                                is.na(reward)
+                                ),
+                        retained_after_preprocessing =
+                                id %in% processed_ids,
+                        .groups = "drop"
+                )
+}
+
 # Variables
 
 variable_types <- function(data) {

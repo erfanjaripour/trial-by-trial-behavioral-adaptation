@@ -126,33 +126,31 @@ The complete analysis workflow is:
 
 
 
-The primary analyses use frequentist mixed-effects models.
+The primary analysis uses a frequentist logistic mixed-effects model:
 
 
 
-Models include:
+`payoff\_maximizing\_choice ~ trial\_c \* payoff\_group + (1 + trial\_c || id)`
 
 
 
-\- Generalized linear mixed-effects models for binary outcomes.
-
-\- Linear mixed-effects models for continuous outcomes.
+The primary outcome indicates whether the participant selected an option with the highest trial-specific payoff.
 
 
 
-The primary behavioural outcome is:
+The `reward\_c1`–`reward\_c4` variables provide the trial-specific payoff values used to determine the payoff-maximizing option. The outcome therefore measures behavioural selection of the highest-payoff option and does not represent a latent reinforcement-learning value estimate.
 
 
 
-payoff\_maximizing\_choice
+`payoff\_group` is treated as a categorical predictor with group 2 as the reference category.
 
 
 
-This represents whether participants selected the currently highest-payoff option based on the predefined reward schedule.
+Secondary analyses use linear mixed-effects models for reward and log reaction time and logistic mixed-effects models for choice switching.
 
 
 
-It does not represent a latent reinforcement-learning optimum or estimated participant value function.
+Model diagnostics and robustness analyses are reported in `results/`.
 
 
 
