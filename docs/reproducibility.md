@@ -1,252 +1,114 @@
-\# Reproducibility
+# Reproducibility
 
+## Overview
 
+This document describes the computational workflow used to reproduce the analyses reported in the project.
 
-\## Overview
+The project investigates trial-by-trial behavioral adaptation in a four-arm restless bandit task using frequentist mixed-effects models.
 
+## Computational Environment
 
+* Operating system: Windows 11
+* Programming language: R
+* R version: 4.6.1
+* Package management: `renv`
 
-This document describes the computational workflow required to reproduce the analyses reported in this project.
-
-
-
-The project investigates trial-by-trial behavioural adaptation in a four-arm restless bandit task using frequentist mixed-effects models as the primary analysis.
-
-
-
-\## Computational Environment
-
-
-
-\- Operating system: Windows 11
-
-\- Programming language: R
-
-\- R version: 4.6.1
-
-\- Package management: renv
-
-
-
-All package versions are recorded in:
-
-
-
-renv.lock
-
-
+Package versions are recorded in `renv.lock`.
 
 To restore the computational environment:
 
-
-
 renv::restore()
 
+## Dataset
 
+The analysis uses the publicly available Bahrami2020 Four-Arm Restless Bandit Dataset.
 
-\## Dataset
+**Source:** [https://osf.io/f3t2a/overview](https://osf.io/f3t2a/overview)
 
+The raw dataset is stored at:
 
+data/raw/DataAllSubjectsRewards.csv
 
-Dataset:
-
-
-
-4 Arm Bandit Task Dataset
-
-
-
-Source:
-
-
-
-OSF repository:
-
-
-
-https://osf.io/f3t2a/
-
-
-
-Raw dataset:
-
-
-
-data/raw/
-
-
-
-Processed dataset:
-
-
+The processed analysis dataset is:
 
 data/processed/processed-data.csv
 
-
-
-The raw dataset should be preserved unchanged. All preprocessing steps are implemented in:
-
-
+The raw dataset is preserved unchanged. All preprocessing functions are implemented in:
 
 R/preprocessing.R
 
+## Data Integrity
 
+The SHA-256 checksum of the raw dataset is:
 
-\## Data Integrity
+ad5acb1d3206d5302e2233f9d7aa3cb2eb1d7eb59fdc2c9090710944daec1f0d
 
+The checksum should be verified before analysis.
 
+## Analysis Pipeline
 
-The raw dataset checksum should be recorded here:
-
-
-
-SHA256: ad5acb1d3206d5302e2233f9d7aa3cb2eb1d7eb59fdc2c9090710944daec1f0d
-
-
-
-\## Analysis Pipeline
-
-
-
-The complete analysis workflow is:
-
-
+The reproducible pipeline is:
 
 1. Raw dataset
-2. R/preprocessing.R
+2. `R/preprocessing.R`
 3. Processed analysis dataset
-4. Exploratory data analysis (notebooks/02-exploratory-analysis.qmd)
-5. Frequentist mixed-effects models (notebooks/03-modeling.qmd)
-6. Model diagnostics and robustness analyses
-7. Tables and publication figures (results/)
+4. `notebooks/01-data-inspection.qmd`
+5. `notebooks/02-exploratory-analysis.qmd`
+6. `notebooks/03-modeling.qmd`
+7. Model diagnostics and robustness analyses
+8. Figures, tables, and model objects in `results/`
 
+Model definitions and reusable statistical functions are maintained in:
 
+R/models.R
 
-\## Primary Statistical Analysis
+Reusable plotting functions are maintained in:
 
+R/visualization.R
 
+## Statistical Analysis
 
-The primary analysis uses a frequentist logistic mixed-effects model:
+The primary analysis uses a logistic mixed-effects model predicting payoff-maximizing choice:
 
+payoff_maximizing_choice ~ (trial_c + trial_c2) * payoff_group +
+    (1 + trial_c + trial_c2 | id)
 
+Secondary analyses model obtained reward, log-transformed reaction time, and choice switching using appropriate linear or logistic mixed-effects models.
 
-`payoff\_maximizing\_choice ~ trial\_c \* payoff\_group + (1 + trial\_c || id)`
+Model comparison uses AIC, BIC, and log-likelihood, with likelihood-ratio tests used only for nested model comparisons. Robustness analyses evaluate alternative random-effects and trial-trajectory specifications.
 
+Model diagnostics assess convergence, singularity, and outcome-appropriate residual behavior.
 
-
-The primary outcome indicates whether the participant selected an option with the highest trial-specific payoff.
-
-
-
-The `reward\_c1`–`reward\_c4` variables provide the trial-specific payoff values used to determine the payoff-maximizing option. The outcome therefore measures behavioural selection of the highest-payoff option and does not represent a latent reinforcement-learning value estimate.
-
-
-
-`payoff\_group` is treated as a categorical predictor with group 2 as the reference category.
-
-
-
-Secondary analyses use linear mixed-effects models for reward and log reaction time and logistic mixed-effects models for choice switching.
-
-
-
-Model diagnostics and robustness analyses are reported in `results/`.
-
-
-
-\## Reproduction Steps
-
-
+## Reproduction Steps
 
 1. Clone the repository.
-2. Restore the R environment: renv::restore()
-3. Verify the raw dataset checksum.
-4. Run preprocessing: R/preprocessing.R
-5. Generate exploratory analyses: notebooks/02-exploratory-analysis.qmd
-6. Run modelling and results preparation: notebooks/03-modeling.qmd
-7. Generated outputs are stored in: results/
+2. Restore the computational environment:
 
+renv::restore()
 
+3. Verify the raw-data checksum.
+4. Source `R/preprocessing.R`; preprocessing is executed through the analysis notebooks.
+5. Render the data-inspection notebook:
 
-\## Repository Structure
+notebooks/01-data-inspection.qmd
 
+6. Render the exploratory analysis:
 
+notebooks/02-exploratory-analysis.qmd
 
-├── .gitignore
+7. Render the modeling workflow:
 
-├── CITATION.cff
+notebooks/03-modeling.qmd
 
-├── LICENSE
+Generated figures, tables, and model objects are stored in:
 
-├── README.md
+results/
 
-├── reinforcement-learning-trajectories.Rproj
+## Reproducibility Principles
 
-├── renv.lock
-
-│
-
-├── R/
-
-│   ├── preprocessing.R
-
-│   ├── models.R
-
-│   └── visualization.R
-
-│
-
-├── data/
-
-│   ├── raw/
-
-│   └── processed/
-
-│
-
-├── docs/
-
-│   ├── data\_dictionary.md
-
-│   ├── analysis\_plan.md
-
-│   └── reproducibility.md
-
-│
-
-├── manuscript/
-
-│   ├── manuscript.tex
-
-│   └── references.bib
-
-│
-
-├── notebooks/
-
-│   ├── 01\_data\_inspection.qmd
-
-│   ├── 02\_exploratory\_analysis.qmd
-
-│   └── 03\_modeling.qmd
-
-│
-
-├── renv/
-
-│   ├── .gitignore
-
-│   ├── activate.R
-
-│   └── settings.json
-
-│
-
-└── results/
-
-    ├── figures/
-
-    ├── tables/
-
-    └── models/
-
+* Raw data are preserved unchanged.
+* Data processing is scripted and reproducible.
+* Exploratory analysis is separated from statistical modeling.
+* Analytical decisions and model specifications are documented.
+* Figures, tables, and model outputs are generated from the analysis pipeline.
+* Package versions are recorded using `renv.lock`.

@@ -1,123 +1,84 @@
-\# Analysis Plan
+# Analysis Plan
 
+## Overview
 
+This project investigates trial-by-trial behavioral adaptation in a four-arm restless bandit task using reproducible mixed-effects modeling. The workflow proceeds from raw-data validation and preprocessing through exploratory analysis, model fitting, diagnostics, robustness analyses, and reproducible results generation.
 
-\## Overview
+## Workflow
 
+1. Data acquisition and provenance verification
+2. Data inspection and integrity checks
+3. Data preprocessing and variable engineering
+4. Exploratory data analysis
+5. Frequentist mixed-effects modeling
+6. Model comparison and selection
+7. Model diagnostics and validation
+8. Robustness analyses
+9. Visualization and results generation
+10. Manuscript preparation
 
+## Principles
 
-This project investigates trial-by-trial behavioural adaptation in a reinforcement-learning task environment using mixed-effects analysis. The analysis follows a fully reproducible workflow from raw data to statistical inference.
+* Preserve the raw dataset unchanged.
+* Perform preprocessing through scripted, reproducible code.
+* Separate exploratory analysis from statistical modeling.
+* Document analytical decisions and model specifications.
+* Generate figures, tables, and model outputs reproducibly.
+* Manage the computational environment with `renv`.
 
+The project uses R, Quarto, Git, and `renv`.
 
+# Primary Analysis
 
-\## Workflow
+The primary analysis examines trial-by-trial changes in the probability of selecting the currently highest-payoff option.
 
+## Primary Outcome
 
+`payoff_maximizing_choice` is a binary indicator of whether the participant selected an option with the highest trial-specific payoff among the four available options. If multiple options share the maximum payoff, selecting any of them is classified as payoff-maximizing.
 
-1. Data acquisition
-2. Data inspection
-3. Data integrity validation
-4. Data preprocessing
-5. Variable engineering
-6. Exploratory data analysis
-7. Frequentist mixed-effects analysis
-8. Model diagnostics and validation
-9. Robustness analyses
-10. Visualisation and interpretation
+The outcome is derived from the trial-specific `reward_c1`–`reward_c4` variables, which represent the trial-specific payoff values associated with the four options provided in the trial-level payoff variables. The outcome therefore measures behavioral selection of the currently highest-payoff option and does not estimate a latent reinforcement-learning value.
 
+## Primary Model
 
+The final primary model is a logistic mixed-effects model:
 
-\## Principles
+payoff_maximizing_choice ~ (trial_c + trial_c2) * payoff_group +
+    (1 + trial_c + trial_c2 | id)
 
-
-
-\* Preserve raw data unchanged.
-
-\* Perform all preprocessing using scripted, reproducible workflows.
-
-\* Separate exploratory and confirmatory analyses.
-
-\* Pre-specify primary analyses where possible.
-
-\* Document all analytical decisions.
-
-\* Ensure all figures, tables, and results are reproducible from the source data.
-
-
-
-The project uses R, Quarto, Git, and renv to ensure computational reproducibility.
-
-
-
-\# Primary Analysis
-
-
-
-The primary analysis uses a logistic mixed-effects model to examine trial-by-trial changes in the probability of selecting an option with the highest available payoff.
-
-
-
-\## Primary Outcome
-
-
-
-`payoff\_maximizing\_choice` is a binary indicator of whether the participant selected an option with the highest trial-specific payoff among the four available options. If multiple options share the maximum payoff, selecting any of them is classified as payoff-maximizing.
-
-
-
-The payoff values are taken from the trial-specific `reward\_c1`–`reward\_c4` variables provided in the dataset. These variables represent the predefined payoff values for the four options on each trial. The outcome is therefore a behavioural measure of selecting the currently highest-payoff option; it is not an estimate of a latent reinforcement-learning value function.
-
-
-
-Choice-switch analyses exclude the first trial of each participant because switching requires a previous choice.
-
-
-
-\## Primary Model Specification
-
-
-
-The primary model is:
-
-
-
-`payoff\_maximizing\_choice ~ trial\_c \* payoff\_group + (1 + trial\_c || id)`
-
-
-
-`trial\_c` is the centered trial number. `payoff\_group` is treated as a categorical predictor with payoff group 2 as the reference category.
-
-
+`trial_c` is the centered trial number and `trial_c2` is its squared term. `payoff_group` is a categorical predictor with payoff group 2 as the reference category.
 
 The model includes:
 
+* linear and quadratic trial effects;
+* payoff-group effects;
+* trial-by-group interactions for both trial terms;
+* participant-specific random intercepts;
+* participant-specific random slopes for linear and quadratic trial effects;
+* correlated random effects.
 
+The quadratic specification was selected based on comparative model fit and robustness analyses. The correlated random-effects specification was retained based on comparative model fit (AIC, BIC, and log-likelihood), provided that convergence and singularity criteria were satisfied.
 
-\* Fixed effects of trial, payoff group, and their interaction.
+## Secondary Analyses
 
-\* Participant-specific random intercepts.
+Secondary models examine:
 
-\* Participant-specific uncorrelated random slopes for trial.
+* obtained reward using a linear mixed-effects model;
+* log-transformed reaction time using a linear mixed-effects model;
+* choice switching using a logistic mixed-effects model.
 
+The final model specifications are documented in the modeling workflow and reproduced in `results/tables/final-model-specifications.csv`.
 
+Choice switching is undefined when no preceding observed choice is available. The first trial is therefore structurally missing for participants with an observed first choice. Additional missingness is assessed separately; no additional choice-switching missingness was identified.
 
-The random-slope structure allows participants to differ in their behavioural trajectories across trials. The uncorrelated specification avoids estimating an additional intercept-slope correlation parameter.
+## Model Comparison and Robustness
 
+Candidate models are compared using AIC, BIC, and log-likelihood. Likelihood-ratio tests are used only for nested model comparisons. Model selection also considers model complexity, convergence, and singularity.
 
+Robustness analyses evaluate:
 
-A quadratic trial specification was evaluated as a robustness analysis to assess possible nonlinear trajectories. The linear model was retained as the primary model because it provides a simpler and directly interpretable estimate of behavioural change across trials.
+* alternative random-effects specifications;
+* linear versus quadratic trial trajectories.
 
+Model diagnostics assess convergence, singularity, residual behavior, and distributional assumptions as appropriate for each outcome.
 
-
-\## Secondary Analyses
-
-
-
-Secondary models examine obtained reward, log-transformed reaction time, and choice switching using linear or logistic mixed-effects models as appropriate.
-
-
-
-Robustness analyses assess the sensitivity of the primary results to alternative random-effects and trial-trajectory specifications.
-
-
-
+Convergence and singularity are assessed for all final models and reported with the model-selection results.
