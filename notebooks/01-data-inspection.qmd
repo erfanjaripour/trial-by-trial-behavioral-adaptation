@@ -9,11 +9,11 @@ execute:
 
 # Purpose
 
-This notebook performs an initial inspection of the raw Bahrami2020 four-arm restless bandit dataset. No preprocessing, filtering, or data modification is performed.
+This notebook performs an initial inspection of the raw Bahrami2020 four-arm bandit task dataset. No preprocessing, filtering, or data modification is performed.
 
 # Dataset
 
-- Dataset: Bahrami2020 Four-Arm Restless Bandit
+- Dataset: 4 Arm Bandit Task Dataset
 - Source: OSF (https://osf.io/f3t2a/)
 
 # Setup

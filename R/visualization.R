@@ -315,23 +315,48 @@ plot_rt_learning_curve <- function(data) {
         )
 }
 
-plot_learning_curve_by_group <- function(data,
-                                         variable,
-                                         group,
-                                         y_label) {
+plot_learning_curve_by_group <- function(
+                data,
+                variable,
+                group,
+                y_label
+) {
         
         summary_data <-
                 data |>
+                dplyr::filter(
+                        !is.na(.data[[variable]]),
+                        !is.na(.data[[group]])
+                ) |>
+                dplyr::group_by(
+                        id,
+                        .data[[group]],
+                        trial
+                ) |>
+                dplyr::summarise(
+                        participant_mean =
+                                mean(.data[[variable]], na.rm = TRUE),
+                        .groups = "drop"
+                ) |>
                 dplyr::group_by(
                         .data[[group]],
                         trial
                 ) |>
                 dplyr::summarise(
-                        n = dplyr::n(),
-                        mean = mean(.data[[variable]], na.rm = TRUE),
-                        sd = stats::sd(.data[[variable]], na.rm = TRUE),
-                        se = sd / sqrt(n),
-                        ci = stats::qt(0.975, df = n - 1) * se,
+                        n_participants = dplyr::n(),
+                        mean = mean(
+                                participant_mean,
+                                na.rm = TRUE
+                        ),
+                        sd = stats::sd(
+                                participant_mean,
+                                na.rm = TRUE
+                        ),
+                        se = sd / sqrt(n_participants),
+                        ci = stats::qt(
+                                0.975,
+                                df = n_participants - 1
+                        ) * se,
                         .groups = "drop"
                 )
         
@@ -596,9 +621,32 @@ plot_odds_ratios <- function(model) {
 
 # Predictions by Group
 
-plot_predictions_by_group <- function(model,
-                                      trial_values = seq(-75, 75, by = 5),
-                                      y_label = "Predicted value") {
+plot_predictions_by_group <- function(
+                model,
+                trial_values = seq(
+                        -1.7,
+                        1.7,
+                        length.out = 100
+                ),
+                y_label = "Predicted value"
+) {
+        
+        model_data <- stats::model.frame(model)
+        
+        if (!"payoff_group" %in% names(model_data)) {
+                stop("The fitted model does not contain payoff_group.")
+        }
+        
+        group_levels <-
+                sort(
+                        unique(
+                                model_data$payoff_group
+                        )
+                )
+        
+        if (length(group_levels) < 2) {
+                stop("Fewer than two payoff groups are present in the fitted model.")
+        }
         
         predictions <-
                 emmeans::emmeans(
@@ -611,42 +659,90 @@ plot_predictions_by_group <- function(model,
                 ) |>
                 as.data.frame()
         
-        # Rename confidence intervals consistently
-        if ("asymp.LCL" %in% names(predictions)) {
+        predictions$payoff_group <-
+                factor(
+                        predictions$payoff_group,
+                        levels = group_levels
+                )
+        
+        estimate_column <-
+                intersect(
+                        c(
+                                "prob",
+                                "response",
+                                "emmean"
+                        ),
+                        names(predictions)
+                )
+        
+        if (length(estimate_column) == 0) {
+                stop(
+                        paste(
+                                "Could not identify the prediction column.",
+                                "Available columns:",
+                                paste(
+                                        names(predictions),
+                                        collapse = ", "
+                                )
+                        )
+                )
+        }
+        
+        predictions <-
+                predictions |>
+                dplyr::rename(
+                        predicted = dplyr::all_of(
+                                estimate_column[1]
+                        )
+                )
+        
+        if (
+                all(
+                        c(
+                                "asymp.LCL",
+                                "asymp.UCL"
+                        ) %in%
+                        names(predictions)
+                )
+        ) {
                 
-                predictions <- predictions |>
+                predictions <-
+                        predictions |>
                         dplyr::rename(
                                 conf.low = asymp.LCL,
                                 conf.high = asymp.UCL
                         )
                 
-        } else {
+        } else if (
+                all(
+                        c(
+                                "lower.CL",
+                                "upper.CL"
+                        ) %in%
+                        names(predictions)
+                )
+        ) {
                 
-                predictions <- predictions |>
+                predictions <-
+                        predictions |>
                         dplyr::rename(
                                 conf.low = lower.CL,
                                 conf.high = upper.CL
                         )
-        }
-        
-        # Rename outcome column
-        if ("prob" %in% names(predictions)) {
                 
-                predictions <- predictions |>
-                        dplyr::rename(
-                                predicted = prob
+        } else {
+                
+                stop(
+                        paste(
+                                "Could not identify confidence-interval columns.",
+                                "Available columns:",
+                                paste(
+                                        names(predictions),
+                                        collapse = ", "
+                                )
                         )
-                
+                )
         }
-        
-        if ("emmean" %in% names(predictions)) {
-                
-                predictions <- predictions |>
-                        dplyr::rename(
-                                predicted = emmean
-                        )
-        }
-        
         
         ggplot2::ggplot(
                 predictions,
@@ -658,6 +754,7 @@ plot_predictions_by_group <- function(model,
                         fill = payoff_group
                 )
         ) +
+                
                 ggplot2::geom_ribbon(
                         ggplot2::aes(
                                 ymin = conf.low,
@@ -666,18 +763,26 @@ plot_predictions_by_group <- function(model,
                         alpha = 0.20,
                         colour = NA
                 ) +
+                
                 ggplot2::geom_line(
                         linewidth = 1
                 ) +
+                
                 ggplot2::scale_x_continuous(
-                        breaks = seq(-80, 80, by = 20)
+                        breaks = seq(
+                                -1.5,
+                                1.5,
+                                by = 0.5
+                        )
                 ) +
+                
                 ggplot2::labs(
-                        x = "Centered trial",
+                        x = "Standardized trial",
                         y = y_label,
                         colour = "Payoff Group",
                         fill = "Payoff Group"
                 ) +
+                
                 ggplot2::theme_minimal()
 }
 
@@ -841,48 +946,4 @@ plot_model_comparison <- function(comparison_table) {
 plot_model_performance <- function(model) {
         
         performance::check_model(model)
-}
-
-# Descriptive Results
-
-descriptive_statistics_table <- function(data) {
-        
-        tibble::tibble(
-                
-                participants =
-                        dplyr::n_distinct(data$id),
-                
-                trials =
-                        nrow(data),
-                
-                missing_reward =
-                        sum(is.na(data$reward)),
-                
-                missing_log_rt =
-                        sum(is.na(data$log_rt)),
-                
-                missing_payoff_maximizing_choice =
-                        sum(is.na(data$payoff_maximizing_choice)),
-                
-                missing_choice_switch =
-                        sum(is.na(data$choice_switch)),
-                
-                mean_reward =
-                        mean(data$reward, na.rm = TRUE),
-                
-                sd_reward =
-                        stats::sd(data$reward, na.rm = TRUE),
-                
-                mean_log_rt =
-                        mean(data$log_rt, na.rm = TRUE),
-                
-                sd_log_rt =
-                        stats::sd(data$log_rt, na.rm = TRUE),
-                
-                payoff_maximizing_choice_rate =
-                        mean(data$payoff_maximizing_choice, na.rm = TRUE),
-                
-                choice_switch_rate =
-                        mean(data$choice_switch, na.rm = TRUE)
-        )
 }

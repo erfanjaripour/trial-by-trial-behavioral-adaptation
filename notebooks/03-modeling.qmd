@@ -7,6 +7,15 @@ execute:
   message: false
 ---
 
+# Purpose
+
+This notebook performs the prespecified mixed-effects modeling analyses of the processed Bahrami2020 four-arm bandit task dataset. It evaluates trial-wise performance trajectories, individual differences, model fit, and robustness across alternative model specifications.
+
+# Dataset
+
+- Dataset: 4 Arm Bandit Task Dataset
+- Source: OSF (https://osf.io/f3t2a/)
+
 # Setup
 
 ```{r}
@@ -109,7 +118,7 @@ readr::write_csv(
 
 # Primary Outcome: Payoff Maximizing Choice
 
-## Ensure appropriate factor coding
+## Ensure Appropriate Factor Coding
 
 ```{r}
 processed_data <- processed_data |>
@@ -162,11 +171,8 @@ model_summary(payoff_maximizing_interaction)
 model_convergence(payoff_maximizing_interaction)
 
 model_singularity(payoff_maximizing_interaction)
-```
 
-## Model Export Validation
 
-```{r}
 payoff_maximizing_export <-
         export_model_summary(payoff_maximizing_interaction)
 ```
@@ -263,12 +269,8 @@ model_summary(reward_interaction)
 model_convergence(reward_interaction)
 
 model_singularity(reward_interaction)
-```
 
 
-## Model Export Validation
-
-```{r}
 reward_export <-
         export_model_summary(reward_interaction)
 ```
@@ -367,12 +369,10 @@ model_summary(log_rt_interaction)
 model_convergence(log_rt_random_slope)
 
 model_singularity(log_rt_random_slope)
-```
 
-## Model Export Validation
 
-```{r}
-log_rt_export <- export_model_summary(log_rt_random_slope)
+log_rt_export <-
+        export_model_summary(log_rt_random_slope)
 ```
 
 ## Model Comparison
@@ -465,11 +465,8 @@ model_summary(switch_interaction)
 model_convergence(switch_interaction)
 
 model_singularity(switch_interaction)
-```
 
-## Model Export Validation
 
-```{r}
 choice_switch_export <-
         export_model_summary(switch_interaction)
 ```
@@ -559,14 +556,14 @@ quadratic_comparison
 ```
 
 ```{r}
-payoff_maximizing_interaction_quadratic_data <-
+payoff_maximizing_linear_interaction_robustness <-
         fit_payoff_maximizing_interaction_quadratic_data(
                 processed_data
         )
 
 payoff_maximizing_linear_vs_quadratic <-
         compare_models(
-                linear = payoff_maximizing_interaction_quadratic_data,
+                linear = payoff_maximizing_linear_interaction_robustness,
                 quadratic = payoff_maximizing_quadratic_uncorrelated
         ) |>
         dplyr::mutate(
@@ -577,31 +574,16 @@ payoff_maximizing_linear_vs_quadratic
 
 payoff_maximizing_quadratic_likelihood_ratio <-
         compare_nested_models(
-                payoff_maximizing_interaction_quadratic_data,
+                payoff_maximizing_linear_interaction_robustness,
                 payoff_maximizing_quadratic_uncorrelated
         )
 
 payoff_maximizing_quadratic_likelihood_ratio
 ```
 
-## Quadratic Model Validation
-
-```{r}
-model_convergence(payoff_maximizing_quadratic_correlated)
-
-model_singularity(payoff_maximizing_quadratic_correlated)
-
-model_summary(payoff_maximizing_quadratic_correlated)
-```
-
 ## Random-Effects Sensitivity
 
 ```{r}
-payoff_maximizing_quadratic_correlated <-
-        fit_payoff_maximizing_choice_quadratic_correlated(
-                processed_data
-        )
-
 quadratic_random_effect_comparison <-
         compare_models(
                 uncorrelated = payoff_maximizing_quadratic_uncorrelated,
@@ -613,56 +595,18 @@ quadratic_random_effect_comparison <-
 
 quadratic_random_effect_comparison
 
-model_convergence(payoff_maximizing_quadratic_correlated)
+quadratic_random_effect_likelihood_ratio <-
+    compare_nested_models(
+        payoff_maximizing_quadratic_uncorrelated,
+        payoff_maximizing_quadratic_correlated
+    )
 
-model_singularity(payoff_maximizing_quadratic_correlated)
-```
-
-# Fixed Effects Reporting
-
-```{r}
-payoff_maximizing_effects <-
-        broom.mixed::tidy(
-                payoff_maximizing_quadratic_uncorrelated,
-                effects = "fixed",
-                conf.int = TRUE
-        )
-
-
-reward_effects <-
-        broom.mixed::tidy(
-                reward_interaction,
-                effects = "fixed",
-                conf.int = TRUE
-        )
-
-
-log_rt_effects <-
-        broom.mixed::tidy(
-                log_rt_random_slope,
-                effects = "fixed",
-                conf.int = TRUE
-        )
-
-
-switch_effects <-
-        broom.mixed::tidy(
-                switch_interaction,
-                effects = "fixed",
-                conf.int = TRUE
-        )
-
-
-payoff_maximizing_effects
-reward_effects
-log_rt_effects
-switch_effects
+quadratic_random_effect_likelihood_ratio
 ```
 
 # Final Model Validation
 
 ```{r}
-
 model_convergence(payoff_maximizing_quadratic_uncorrelated)
 model_singularity(payoff_maximizing_quadratic_uncorrelated)
 model_summary(payoff_maximizing_quadratic_uncorrelated)
@@ -682,8 +626,8 @@ model_summary(log_rt_random_slope)
 model_convergence(switch_interaction)
 model_singularity(switch_interaction)
 model_summary(switch_interaction)
-
 ```
+
 ## Model Selection Criteria
 
 The final model specification was selected based on:
@@ -693,7 +637,7 @@ The final model specification was selected based on:
 - improved model fit based on AIC, BIC, and log-likelihood,
 - likelihood-ratio tests for nested model comparisons.
 
-The quadratic trial specification provided a substantially better fit than the linear interaction model, with lower AIC and BIC and a highly significant likelihood-ratio test. The correlated quadratic specification was retained as the final primary model because it provided better AIC, BIC, and log-likelihood than the uncorrelated specification, with no evidence of convergence failure or singularity.
+The quadratic specification was preferred to the linear interaction specification based on the prespecified model-comparison criteria, including AIC, BIC, and the likelihood-ratio test. Among the quadratic specifications, the correlated random-effects model was retained based on comparative model fit (AIC, BIC, and log-likelihood), provided that it showed no convergence failure or singularity. The final model therefore included a quadratic trial trajectory, its interaction with payoff group, and correlated participant-specific random intercepts, linear trial slopes, and quadratic trial slopes.
 
 ```{r}
 payoff_maximizing_selection <-
@@ -994,50 +938,28 @@ descriptive_statistics
 payoff_group_statistics
 ```
 
-
-
 ```{r}
 choice_switch_missingness <-
-        processed_data |>
-        dplyr::group_by(id) |>
-        dplyr::summarise(
-                first_trial_switch_missing =
-                        is.na(choice_switch[trial == 1]),
-                missing_switch_count =
-                        sum(is.na(choice_switch)),
-                n_trials =
-                        dplyr::n(),
-                .groups = "drop"
-        )
+    choice_switch_missingness_summary(
+        processed_data
+    )
 
-choice_switch_missingness_summary <-
-        choice_switch_missingness |>
-        dplyr::summarise(
-                participants = dplyr::n(),
-                participants_with_first_trial_missing =
-                        sum(first_trial_switch_missing),
-                participants_with_only_structural_missing =
-                        sum(
-                                first_trial_switch_missing &
-                                missing_switch_count == 1
-                        ),
-                participants_with_additional_missing =
-                        sum(missing_switch_count > 1)
-        )
+choice_switch_missingness_summary_table <-
+    audit_choice_switch_missingness(
+        processed_data
+    )
 
-choice_switch_missingness_summary
+choice_switch_missingness_summary_table
 
 readr::write_csv(
-        choice_switch_missingness_summary,
-        here::here(
-                "results",
-                "tables",
-                "choice-switch-missingness-summary.csv"
-        )
+    choice_switch_missingness_summary_table,
+    here::here(
+        "results",
+        "tables",
+        "choice-switch-missingness-summary.csv"
+    )
 )
 ```
-
-# Export Descriptive Tables
 
 ```{r}
 readr::write_csv(
@@ -1203,27 +1125,23 @@ ggplot2::ggsave(
 
 ```{r}
 payoff_maximizing_choice_fixed_effects <-
-        broom.mixed::tidy(
-                final_payoff_maximizing_choice_model,
-                effects = "fixed"
+        model_fixed_effects(
+                final_payoff_maximizing_choice_model
         )
 
 reward_fixed_effects <-
-        broom.mixed::tidy(
-                final_reward_model,
-                effects = "fixed"
+        model_fixed_effects(
+                final_reward_model
         )
 
 log_rt_fixed_effects <-
-        broom.mixed::tidy(
-                final_log_rt_model,
-                effects = "fixed"
+        model_fixed_effects(
+                final_log_rt_model
         )
 
 choice_switch_fixed_effects <-
-        broom.mixed::tidy(
-                final_choice_switch_model,
-                effects = "fixed"
+        model_fixed_effects(
+                final_choice_switch_model
         )
 
 payoff_maximizing_choice_confidence_intervals <-
@@ -1253,6 +1171,7 @@ reward_fixed_effects
 log_rt_fixed_effects
 
 choice_switch_fixed_effects
+
 
 levels(processed_data$payoff_group)
 
@@ -1319,6 +1238,7 @@ readr::write_csv(
         )
 )
 ```
+
 # Export Confidence Intervals
 
 ```{r}
@@ -1384,24 +1304,6 @@ readr::write_csv(
 # Random-Effects Variance Summary
 
 ```{r}
-extract_random_effects <- function(model, model_name) {
-
-        lme4::VarCorr(model) |>
-                as.data.frame() |>
-                dplyr::mutate(
-                        model = model_name
-                ) |>
-                dplyr::select(
-                        model,
-                        grp,
-                        var1,
-                        var2,
-                        vcov,
-                        sdcor
-                )
-}
-
-
 payoff_maximizing_choice_random_effects <-
         extract_random_effects(
                 final_payoff_maximizing_choice_model,
@@ -1528,7 +1430,7 @@ ggplot2::ggsave(
 )
 ```
 
-# Main Figure export settings
+# Main Figure Export Settings
 
 ```{r}
 figure_width <- 7
@@ -1706,7 +1608,7 @@ ggplot2::ggsave(
 )
 ```
 
-# Generate effect-size plots
+# Generate Effect-Size Plots
 
 ```{r}
 payoff_maximizing_odds_ratio_plot <-
@@ -1744,13 +1646,13 @@ switch_odds_ratio_plot
 
 ```{r}
 effect_plots <- list(
-        payoff_maximizing_choice_odds_ratios =
+        "payoff-maximizing-choice-odds-ratios" =
                 payoff_maximizing_odds_ratio_plot,
-        reward_coefficients =
+        "reward-coefficients" =
                 reward_coefficient_plot,
-        log_rt_coefficients =
+        "log-rt-coefficients" =
                 log_rt_coefficient_plot,
-        choice_switch_odds_ratios =
+        "choice-switch-odds-ratios" =
                 switch_odds_ratio_plot
 )
 
@@ -1915,7 +1817,7 @@ readr::write_csv(
 model_comparison_all_outcomes
 ```
 
-# Model comparison visualization
+# Model Comparison Visualization
 
 ```{r}
 payoff_maximizing_model_comparison_plot <-
@@ -1955,14 +1857,14 @@ ggplot2::ggsave(
 
 # GLMM Diagnostics
 
-## Payoff maximizing choice model
+## Payoff Maximizing Choice Model
 
 ```{r}
+set.seed(123)
 payoff_maximizing_dharma <-
-        DHARMa::simulateResiduals(
-                fittedModel = final_payoff_maximizing_choice_model
-        )
-
+    DHARMa::simulateResiduals(
+        fittedModel = final_payoff_maximizing_choice_model
+    )
 
 pdf(
         here::here(
@@ -1979,27 +1881,34 @@ plot(payoff_maximizing_dharma)
 
 dev.off()
 
-DHARMa::testUniformity(
-        payoff_maximizing_dharma
-)
+payoff_maximizing_uniformity_test <-
+        DHARMa::testUniformity(
+                payoff_maximizing_dharma
+        )
 
-DHARMa::testDispersion(
-        payoff_maximizing_dharma
-)
+payoff_maximizing_dispersion_test <-
+        DHARMa::testDispersion(
+                payoff_maximizing_dharma
+        )
 
-DHARMa::testZeroInflation(
-        payoff_maximizing_dharma
-)
+payoff_maximizing_outlier_test <-
+        DHARMa::testOutliers(
+                payoff_maximizing_dharma
+        )
+
+payoff_maximizing_uniformity_test
+payoff_maximizing_dispersion_test
+payoff_maximizing_outlier_test
 ```
 
-## Choice switching model
+## Choice Switching Model
 
 ```{r}
+set.seed(123)
 switch_dharma <-
         DHARMa::simulateResiduals(
                 fittedModel = final_choice_switch_model
         )
-
 
 pdf(
         here::here(
@@ -2016,22 +1925,29 @@ plot(switch_dharma)
 
 dev.off()
 
-DHARMa::testUniformity(
-        switch_dharma
-)
+switch_uniformity_test <-
+        DHARMa::testUniformity(
+                switch_dharma
+        )
 
-DHARMa::testDispersion(
-        switch_dharma
-)
+switch_dispersion_test <-
+        DHARMa::testDispersion(
+                switch_dharma
+        )
 
-DHARMa::testZeroInflation(
-        switch_dharma
-)
+switch_outlier_test <-
+        DHARMa::testOutliers(
+                switch_dharma
+        )
+
+switch_uniformity_test
+switch_dispersion_test
+switch_outlier_test
 ```
 
 # LMM Diagnostics
 
-## Reward model
+## Reward Model
 
 ```{r}
 reward_residual_plot <-
@@ -2072,7 +1988,7 @@ ggplot2::ggsave(
 )
 ```
 
-## Log RT model
+## Log RT Model
 
 ```{r}
 log_rt_residual_plot <-
@@ -2186,7 +2102,7 @@ quadratic_robustness <-
 
                 model = c(
                         "linear_interaction",
-                        "quadratic_interaction"
+                        "quadratic_uncorrelated"
                 ),
 
                 AIC = c(
@@ -2215,7 +2131,7 @@ quadratic_robustness <-
 
 quadratic_likelihood_ratio <-
         compare_nested_models(
-                payoff_maximizing_interaction_quadratic_data,
+                payoff_maximizing_linear_interaction_robustness,
                 payoff_maximizing_quadratic_uncorrelated
         )
 

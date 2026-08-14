@@ -1,7 +1,9 @@
 # Data Loading
 
 load_raw_data <- function(
-                path = here::here("data", "raw", "DataAllSubjectsRewards.csv")
+                path = here::here(
+                        "data", "raw", "DataAllSubjectsRewards.csv"
+                        )
 ) {
         
         stopifnot(file.exists(path))
@@ -13,7 +15,9 @@ load_raw_data <- function(
 }
 
 load_processed_data <- function(
-                path = here::here("data", "processed", "processed-data.csv")
+                path = here::here(
+                        "data", "processed", "processed-data.csv"
+                        )
 ) {
         
         stopifnot(file.exists(path))
@@ -26,7 +30,9 @@ load_processed_data <- function(
 
 save_processed_data <- function(
                 data,
-                path = here::here("data", "processed", "processed-data.csv")
+                path = here::here(
+                        "data", "processed", "processed-data.csv"
+                        )
 ) {
         
         readr::write_csv(data, path)
@@ -117,33 +123,39 @@ create_choice_switch <- function(data) {
         data |>
                 dplyr::group_by(id) |>
                 dplyr::mutate(
-                        choice_switch = dplyr::if_else(
-                                dplyr::row_number() == 1,
-                                NA_real_,
-                                as.numeric(choice != dplyr::lag(choice))
+                        previous_choice = dplyr::lag(choice),
+                        choice_switch = dplyr::case_when(
+                                trial == 1 ~ NA_real_,
+                                is.na(choice) | is.na(previous_choice) ~ NA_real_,
+                                TRUE ~ as.numeric(choice != previous_choice)
                         )
                 ) |>
-                dplyr::ungroup()
+                dplyr::ungroup() |>
+                dplyr::select(-previous_choice)
 }
 
 convert_payoff_group <- function(data) {
         
         data |>
                 dplyr::mutate(
-                        payoff_group = factor(payoff_group),
-                        payoff_group = stats::relevel(payoff_group, ref = "2")
+                        payoff_group = factor(
+                                payoff_group
+                                ),
+                        payoff_group = stats::relevel(
+                                payoff_group, ref = "2"
+                                )
                 )
 }
 
 preprocess_data <- function(data = load_raw_data()) {
         
         data |>
+                create_trial_index() |>
                 clean_invalid_rt() |>
                 add_log_rt() |>
-                remove_nonresponse_trials() |>
-                create_trial_index() |>
                 create_payoff_maximizing_choice() |>
                 create_choice_switch() |>
+                remove_nonresponse_trials() |>
                 convert_payoff_group()
 }
 
@@ -381,6 +393,31 @@ verify_dataset <- function(data) {
                 "choice_switch"
         )
         
+        trial_1_switch_valid <-
+                data |>
+                dplyr::filter(trial == 1) |>
+                dplyr::summarise(
+                        valid = all(is.na(choice_switch)),
+                        .groups = "drop"
+                ) |>
+                dplyr::pull(valid)
+        
+        valid_trial_numbers <-
+                all(
+                        data$trial >= 1 &
+                                data$trial <= 150
+                )
+        
+        increasing_trials <-
+                data |>
+                dplyr::group_by(id) |>
+                dplyr::summarise(
+                        valid = all(diff(trial) > 0),
+                        .groups = "drop"
+                ) |>
+                dplyr::pull(valid) |>
+                all()
+        
         tibble::tibble(
                 observations = nrow(data),
                 variables = ncol(data),
@@ -392,39 +429,44 @@ verify_dataset <- function(data) {
                         all(required_variables %in% names(data)),
                 
                 valid_choice =
-                        all(stats::na.omit(data$choice) %in% 1:4),
+                        all(
+                                stats::na.omit(data$choice) %in% 1:4
+                        ),
                 
                 valid_payoff_group =
-                        all(as.character(data$payoff_group) %in% c("2", "3", "4")),
+                        all(
+                                as.character(data$payoff_group) %in%
+                                        c("2", "3", "4")
+                        ),
                 
                 valid_payoff_maximizing_choice =
-                        all(stats::na.omit(data$payoff_maximizing_choice) %in% c(0L, 1L)),
+                        all(
+                                stats::na.omit(
+                                        data$payoff_maximizing_choice
+                                ) %in% c(0L, 1L)
+                        ),
                 
                 valid_choice_switch =
-                        all(stats::na.omit(data$choice_switch) %in% c(0L, 1L)),
+                        all(
+                                stats::na.omit(
+                                        data$choice_switch
+                                ) %in% c(0L, 1L)
+                        ),
                 
-                first_trial_switch_missing =
-                        data |>
-                        dplyr::group_by(id) |>
-                        dplyr::summarise(
-                                valid = is.na(choice_switch[trial == 1]),
-                                .groups = "drop"
-                        ) |>
-                        dplyr::pull(valid) |>
-                        all(),
+                trial_1_switch_missing =
+                        trial_1_switch_valid,
+                
+                valid_trial_numbers =
+                        valid_trial_numbers,
+                
+                increasing_trial_numbers =
+                        increasing_trials,
                 
                 trial_range =
-                        paste(range(data$trial), collapse = "–"),
-                
-                consecutive_trials =
-                        data |>
-                        dplyr::group_by(id) |>
-                        dplyr::summarise(
-                                valid = all(trial == seq_len(dplyr::n())),
-                                .groups = "drop"
-                        ) |>
-                        dplyr::pull(valid) |>
-                        all()
+                        paste(
+                                range(data$trial),
+                                collapse = "–"
+                        )
         )
 }
 

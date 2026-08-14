@@ -1,5 +1,5 @@
 outcome,formula
-payoff_maximizing_choice,payoff_maximizing_choice ~ (trial_c + trial_c2) * payoff_group +      (1 + trial_c | id)
+payoff_maximizing_choice,payoff_maximizing_choice ~ (trial_c + trial_c2) * payoff_group +      (1 + trial_c + trial_c2 | id)
 reward,reward ~ trial_c * payoff_group + ((1 | id) + (0 + trial_c |      id))
 log_rt,log_rt ~ trial_c + payoff_group + ((1 | id) + (0 + trial_c |      id))
 choice_switch,choice_switch ~ trial_c * payoff_group + ((1 | id) + (0 + trial_c |      id))

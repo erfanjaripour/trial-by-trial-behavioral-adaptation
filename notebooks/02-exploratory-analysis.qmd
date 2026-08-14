@@ -9,7 +9,7 @@ execute:
 
 # Purpose
 
-This notebook performs descriptive exploratory analysis of the Bahrami2020 four-arm restless bandit dataset. The objective is to characterize behavioural patterns, evaluate the hierarchical structure of the data, assess data quality, examine variables relevant to the planned mixed-effects models, and determine readiness for statistical modelling. No confirmatory statistical inference is conducted.
+This notebook performs descriptive exploratory analysis of the Bahrami2020 four-arm bandit task dataset. The objective is to characterize behavioral patterns, assess data quality and hierarchical structure, and examine variables relevant to the planned mixed-effects models. No confirmatory statistical inference is conducted.
 
 # Dataset
 
@@ -230,7 +230,7 @@ plot_correlation_matrix(
 missing_by_variable(processed_data)
 ```
 
-## Missing Values by Variable (%)
+## Missing Values by Variable Percentage
 
 ```{r}
 missing_by_variable_percent(processed_data)
