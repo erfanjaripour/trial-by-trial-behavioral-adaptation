@@ -637,115 +637,108 @@ plot_predictions_by_group <- function(
                 stop("The fitted model does not contain payoff_group.")
         }
         
-        group_levels <-
-                sort(
-                        unique(
-                                model_data$payoff_group
-                        )
-                )
+        group_levels <- levels(model_data$payoff_group)
+        
+        if (is.null(group_levels) || length(group_levels) < 2) {
+                group_levels <-
+                        sort(unique(as.character(model_data$payoff_group)))
+        }
         
         if (length(group_levels) < 2) {
                 stop("Fewer than two payoff groups are present in the fitted model.")
         }
         
-        predictions <-
-                emmeans::emmeans(
-                        model,
-                        ~ payoff_group * trial_c,
-                        at = list(
-                                trial_c = trial_values
-                        ),
-                        type = "response"
+        # Construct prediction grid
+        prediction_data <-
+                tidyr::expand_grid(
+                        trial_c = trial_values,
+                        payoff_group = group_levels
                 ) |>
-                as.data.frame()
-        
-        predictions$payoff_group <-
-                factor(
-                        predictions$payoff_group,
-                        levels = group_levels
+                dplyr::mutate(
+                        payoff_group = factor(
+                                payoff_group,
+                                levels = group_levels
+                        )
                 )
         
-        estimate_column <-
-                intersect(
-                        c(
-                                "prob",
-                                "response",
-                                "emmean"
+        # Add quadratic term when required
+        if ("trial_c2" %in% names(model_data)) {
+                
+                prediction_data <-
+                        prediction_data |>
+                        dplyr::mutate(
+                                trial_c2 = trial_c^2
+                        )
+        }
+        
+        # Design matrix for fixed effects
+        X <-
+                stats::model.matrix(
+                        stats::delete.response(
+                                stats::terms(model)
                         ),
-                        names(predictions)
+                        data = prediction_data
                 )
         
-        if (length(estimate_column) == 0) {
-                stop(
-                        paste(
-                                "Could not identify the prediction column.",
-                                "Available columns:",
-                                paste(
-                                        names(predictions),
-                                        collapse = ", "
+        beta <-
+                lme4::fixef(model)
+        
+        V <-
+                as.matrix(
+                        stats::vcov(model)
+                )
+        
+        # Fixed-effect linear predictor
+        eta <-
+                as.vector(
+                        X %*% beta
+                )
+        
+        # Standard error of fixed-effect prediction
+        se_eta <-
+                sqrt(
+                        pmax(
+                                0,
+                                rowSums(
+                                        (X %*% V) * X
                                 )
                         )
                 )
-        }
         
-        predictions <-
-                predictions |>
-                dplyr::rename(
-                        predicted = dplyr::all_of(
-                                estimate_column[1]
-                        )
-                )
+        z_value <- stats::qnorm(0.975)
         
-        if (
-                all(
-                        c(
-                                "asymp.LCL",
-                                "asymp.UCL"
-                        ) %in%
-                        names(predictions)
-                )
-        ) {
+        lower_eta <-
+                eta - z_value * se_eta
+        
+        upper_eta <-
+                eta + z_value * se_eta
+        
+        # Transform to response scale
+        if (inherits(model, "glmerMod")) {
                 
-                predictions <-
-                        predictions |>
-                        dplyr::rename(
-                                conf.low = asymp.LCL,
-                                conf.high = asymp.UCL
-                        )
+                linkinv <- model@resp$family$linkinv
                 
-        } else if (
-                all(
-                        c(
-                                "lower.CL",
-                                "upper.CL"
-                        ) %in%
-                        names(predictions)
-                )
-        ) {
-                
-                predictions <-
-                        predictions |>
-                        dplyr::rename(
-                                conf.low = lower.CL,
-                                conf.high = upper.CL
+                prediction_data <-
+                        prediction_data |>
+                        dplyr::mutate(
+                                predicted = linkinv(eta),
+                                conf.low = linkinv(lower_eta),
+                                conf.high = linkinv(upper_eta)
                         )
                 
         } else {
                 
-                stop(
-                        paste(
-                                "Could not identify confidence-interval columns.",
-                                "Available columns:",
-                                paste(
-                                        names(predictions),
-                                        collapse = ", "
-                                )
+                prediction_data <-
+                        prediction_data |>
+                        dplyr::mutate(
+                                predicted = eta,
+                                conf.low = lower_eta,
+                                conf.high = upper_eta
                         )
-                )
         }
         
         ggplot2::ggplot(
-                predictions,
+                prediction_data,
                 ggplot2::aes(
                         x = trial_c,
                         y = predicted,
@@ -754,7 +747,6 @@ plot_predictions_by_group <- function(
                         fill = payoff_group
                 )
         ) +
-                
                 ggplot2::geom_ribbon(
                         ggplot2::aes(
                                 ymin = conf.low,
@@ -763,11 +755,9 @@ plot_predictions_by_group <- function(
                         alpha = 0.20,
                         colour = NA
                 ) +
-                
                 ggplot2::geom_line(
                         linewidth = 1
                 ) +
-                
                 ggplot2::scale_x_continuous(
                         breaks = seq(
                                 -1.5,
@@ -775,14 +765,12 @@ plot_predictions_by_group <- function(
                                 by = 0.5
                         )
                 ) +
-                
                 ggplot2::labs(
                         x = "Standardized trial",
                         y = y_label,
                         colour = "Payoff Group",
                         fill = "Payoff Group"
                 ) +
-                
                 ggplot2::theme_minimal()
 }
 
