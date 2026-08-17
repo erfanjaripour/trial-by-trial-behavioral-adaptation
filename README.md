@@ -55,45 +55,85 @@ Model comparison uses AIC, BIC, and log-likelihood. Likelihood-ratio tests are u
 
 ## Repository Structure
 
-├── .gitignore
-├── CITATION.cff
-├── LICENSE
-├── README.md
-├── reinforcement-learning-trajectories.Rproj
-├── renv.lock
 │
-├── R/
-│   ├── preprocessing.R
-│   ├── models.R
-│   └── visualization.R
-│
+
 ├── data/
+
 │   ├── raw/
+
 │   └── processed/
+
 │
+
 ├── docs/
+
 │   ├── analysis-plan.md
+
 │   ├── data-dictionary.md
+
 │   └── reproducibility.md
+
 │
+
 ├── manuscript/
+
 │   ├── manuscript.tex
+
 │   └── references.bib
+
 │
+
 ├── notebooks/
+
 │   ├── 01-data-inspection.qmd
+
 │   ├── 02-exploratory-analysis.qmd
+
 │   └── 03-modeling.qmd
+
 │
+
+├── R/
+
+│   ├── preprocessing.R
+
+│   ├── models.R
+
+│   └── visualization.R
+
+│
+
 ├── renv/
+
 │   ├── .gitignore
+
 │   ├── activate.R
+
 │   └── settings.json
+
 │
-└── results/
-    ├── figures/
-    ├── tables/
-    └── models/
+
+├── results/
+
+│   ├── figures/
+
+│   ├── tables/
+
+│   └── models/
+
+│
+
+├── .gitignore
+
+├── CITATION.cff
+
+├── LICENSE
+
+├── README.md
+
+├── reinforcement-learning-trajectories.Rproj
+
+└── renv.lock
 
 ## Reproducibility
 
