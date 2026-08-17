@@ -131,7 +131,7 @@ Model comparison uses AIC, BIC, and log-likelihood. Likelihood-ratio tests are u
 
 ├── README.md
 
-├── reinforcement-learning-trajectories.Rproj
+├── trial-by-trial-behavioral-adaptation.Rproj
 
 └── renv.lock
 

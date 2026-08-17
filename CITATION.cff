@@ -7,7 +7,7 @@ authors:
 
 version: "1.0.0"
 
-repository-code: "https://github.com/erfanjaripour/reinforcement-learning-trajectories"
+repository-code: "https://github.com/erfanjaripour/trial-by-trial-behavioral-adaptation"
 
 license: "MIT"
 
